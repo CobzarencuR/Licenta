@@ -82,7 +82,7 @@ export default function Register({ navigation }: any) {
             />
             {/* <Button title="Register" onPress={registerUser} /> */}
             <TouchableOpacity onPress={registerUser}>
-                <Text>Register</Text>
+                <Text style={styles.input}>Register</Text>
             </TouchableOpacity>
         </View>
     );
