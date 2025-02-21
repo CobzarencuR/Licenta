@@ -44,7 +44,6 @@ export default function Register({ navigation }: any) {
     const registerUser = () => {
         if (username && email && password) {
             db.transaction((tx) => {
-                // Check if username already exists
                 tx.executeSql(
                     'SELECT * FROM users WHERE username = ?;',
                     [username],
@@ -52,7 +51,6 @@ export default function Register({ navigation }: any) {
                         if (results.rows.length > 0) {
                             Alert.alert('Error', 'Username already exists. Please choose another one.');
                         } else {
-                            // If username is unique, insert new user
                             tx.executeSql(
                                 'INSERT INTO users (username, email, password) VALUES (?, ?, ?);',
                                 [username, email, password],
