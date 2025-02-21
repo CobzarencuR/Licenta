@@ -25,6 +25,19 @@ export default function ProfileScreen() {
     const [showSexModal, setShowSexModal] = useState(false);
     const [showActivityLevelModal, setShowActivityLevelModal] = useState(false);
 
+    // Calculate age based on DOB
+    const calculateAge = (dob: Date) => {
+        const today = new Date();
+        let age = today.getFullYear() - dob.getFullYear();
+        const month = today.getMonth();
+        const day = today.getDate();
+
+        if (month < dob.getMonth() || (month === dob.getMonth() && day < dob.getDate())) {
+            age--;
+        }
+        return age;
+    };
+
     interface Option {
         label: string;
         value: string;
@@ -102,14 +115,16 @@ export default function ProfileScreen() {
             return;
         }
 
+        const age = calculateAge(dob); // Calculate age
+
         console.log('Updating profile for username:', storedUsername);
 
         db.transaction(tx => {
             tx.executeSql(
                 `UPDATE users 
-                    SET height = ?, weight = ?, sex = ?, dob = ?, activityLevel = ? 
+                    SET height = ?, weight = ?, sex = ?, dob = ?, age = ?, activityLevel = ? 
                     WHERE username = ?;`,
-                [height || null, weight || null, sex || null, dob.toISOString().split('T')[0], activityLevel || null, username],
+                [height || null, weight || null, sex || null, dob.toISOString().split('T')[0], age, activityLevel || null, username],
                 (_, result) => {
                     console.log('Rows affected:', result.rowsAffected);
                     if (result.rowsAffected > 0) {

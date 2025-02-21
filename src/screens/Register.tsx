@@ -24,7 +24,8 @@ export default function Register({ navigation }: any) {
                     height REAL, 
                     weight REAL, 
                     sex TEXT, 
-                    dob TEXT, 
+                    dob TEXT,
+                    age INTEGER,
                     activityLevel REAL
                 );`,
                 [],
