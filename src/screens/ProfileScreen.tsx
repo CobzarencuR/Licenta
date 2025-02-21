@@ -21,6 +21,7 @@ export default function ProfileScreen() {
     const [dob, setDob] = useState(new Date());
     const [showDatePicker, setShowDatePicker] = useState(false);
     const [activityLevel, setActivityLevel] = useState('');
+    const [objective, setObjective] = useState('');
     const navigation = useNavigation();
 
     // Calculate age based on DOB
@@ -47,6 +48,12 @@ export default function ProfileScreen() {
         { label: 'Active', value: '1.3' },
         { label: 'Very Active', value: '1.4' }
     ];
+
+    const ObjectiveOptions = [
+        { label: 'Weight Loss', value: 'lose' },
+        { label: 'Maintenance', value: 'maintain' },
+        { label: 'Weight Gain', value: 'gain' }
+    ]
 
     // Fetch user data from the database
     useEffect(() => {
@@ -75,6 +82,7 @@ export default function ProfileScreen() {
                             setSex(row.sex || '');
                             setDob(row.dob ? new Date(row.dob) : new Date());
                             setActivityLevel(row.activityLevel ? row.activityLevel.toString() : '');
+                            setObjective(row.objective || '');
                         } else {
                             console.log('No user found in the database.');
                         }
@@ -87,6 +95,49 @@ export default function ProfileScreen() {
         fetchUserProfile();
     }, []);
 
+    const calculateCaloriesAndMacros = () => {
+        const weightKg = parseFloat(weight);
+        const heightCm = parseFloat(height);
+        const age = calculateAge(dob);
+        const activityMultiplier = parseFloat(activityLevel);
+
+        let BMR;
+        if (sex === 'M') {
+            BMR = 66 + 13.7 * weightKg + 5 * heightCm - 6.75 * age;
+        } else if (sex === 'F') {
+            BMR = 655 + 9.6 * weightKg + 1.7 * heightCm - 4.7 * age;
+        } else {
+            return null;
+        }
+
+        const totalCalories = BMR * activityMultiplier;
+
+        const proteinGrams = weightKg * 1.75;
+        const fatGrams = weightKg * 0.88;
+        const proteinCalories = proteinGrams * 4;
+        const fatCalories = fatGrams * 9;
+        let carbsCalories = 0;
+        let carbsGrams = 0;
+
+        if (objective === 'maintain') {
+            carbsCalories = totalCalories - (proteinCalories + fatCalories);
+            carbsGrams = carbsCalories / 4;
+        } else if (objective === 'lose') {
+            carbsCalories = totalCalories - (proteinCalories + fatCalories) - 300;
+            carbsGrams = carbsCalories / 4;
+        } else if (objective === 'gain') {
+            carbsCalories = totalCalories - (proteinCalories + fatCalories) + 150;
+            carbsGrams = carbsCalories / 4;
+        }
+
+        return {
+            totalCalories: Math.round(totalCalories),
+            protein: Math.round(proteinGrams),
+            carbs: Math.round(carbsGrams),
+            fat: Math.round(fatGrams),
+        };
+    };
+
     // Function to update user profile
     const updateProfile = async () => {
         const storedUsername = await AsyncStorage.getItem('loggedInUsername');
@@ -96,22 +147,30 @@ export default function ProfileScreen() {
             return;
         }
 
-        const age = calculateAge(dob); // Calculate age
+        if (!height || !weight || !sex || !dob || !activityLevel || !objective) {
+            Alert.alert('Error', 'All fields must be filled in before saving.');
+            return;
+        }
+
+        const age = calculateAge(dob);
+        const macros = calculateCaloriesAndMacros();
+
+        if (!macros) return;
 
         console.log('Updating profile for username:', storedUsername);
 
         db.transaction(tx => {
             tx.executeSql(
                 `UPDATE users
-                        SET height = ?, weight = ?, sex = ?, dob = ?, age = ?, activityLevel = ?
+                        SET height = ?, weight = ?, sex = ?, dob = ?, age = ?, activityLevel = ?, objective = ?, calories = ?, protein = ?, carbs = ?, fats = ?
                         WHERE username = ?;`,
-                [height || null, weight || null, sex || null, dob.toISOString().split('T')[0], age, activityLevel || null, username],
+                [height, weight, sex, dob.toISOString().split('T')[0], age, activityLevel, objective, macros.totalCalories, macros.protein, macros.carbs, macros.fat, username],
                 (_, result) => {
                     console.log('Rows affected:', result.rowsAffected);
                     if (result.rowsAffected > 0) {
                         Alert.alert('Success', 'Profile updated successfully');
                     } else {
-                        Alert.alert('Error', 'No user found or no changes made');
+                        Alert.alert('Error', 'All fields must be filled in');
                     }
                 },
                 (error) => {
@@ -124,8 +183,7 @@ export default function ProfileScreen() {
 
     const handleLogout = async () => {
         await AsyncStorage.removeItem('loggedInUsername');
-        Alert.alert('Logged Out', 'You have been logged out.');
-        navigation.navigate('Login' as never); // Change 'LoginScreen' to your actual login screen name
+        navigation.navigate('Login' as never);
     };
 
     return (
@@ -193,6 +251,19 @@ export default function ProfileScreen() {
                     placeholder="Select level"
                     value={activityLevel}
                     onChange={item => setActivityLevel(item.value)}
+                />
+            </View>
+
+            <View style={styles.row}>
+                <Text style={styles.label}>Objective:</Text>
+                <Dropdown
+                    style={styles.dropdown}
+                    data={ObjectiveOptions}
+                    labelField="label"
+                    valueField="value"
+                    placeholder="Select objective"
+                    value={objective}
+                    onChange={item => setObjective(item.value)}
                 />
             </View>
 

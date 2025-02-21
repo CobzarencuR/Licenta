@@ -26,7 +26,12 @@ export default function Register({ navigation }: any) {
                     sex TEXT, 
                     dob TEXT,
                     age INTEGER,
-                    activityLevel REAL
+                    activityLevel REAL,
+                    objective TEXT,
+                    calories REAL,
+                    protein REAL,
+                    carbs REAL,
+                    fats REAL
                 );`,
                 [],
                 () => console.log('Users table created successfully'),
