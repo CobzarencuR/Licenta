@@ -55,7 +55,6 @@ export default function ProfileScreen() {
         { label: 'Weight Gain', value: 'gain' }
     ]
 
-    // Fetch user data from the database
     useEffect(() => {
         const fetchUserProfile = async () => {
             const storedUsername = await AsyncStorage.getItem('loggedInUsername');

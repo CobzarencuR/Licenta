@@ -21,8 +21,8 @@ const Header: React.FC = () => {
     }, []);
     return (
         <View style={styles.header}>
-            <Text style={styles.headerText}>MyFitnessApp</Text>
             <Text style={styles.usernameText}>{username}</Text>
+            <Text style={styles.headerText}>MyFitnessApp</Text>
         </View>
     );
 };
@@ -31,18 +31,20 @@ const styles = StyleSheet.create({
     header: {
         backgroundColor: '#007AFF',
         padding: 15,
+        flexDirection: 'row',
         alignItems: 'center',
-        justifyContent: 'center',
     },
     headerText: {
         fontSize: 22,
         fontWeight: 'bold',
         color: 'white',
+        position: 'absolute',
+        right: '50%',
+        transform: [{ translateX: '42.5%' }],
     },
     usernameText: {
-        fontSize: 16,
+        fontSize: 14,
         color: 'white',
-        marginTop: 5,
     },
 });
 

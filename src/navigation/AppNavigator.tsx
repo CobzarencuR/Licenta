@@ -11,7 +11,6 @@ import LoginScreen from '../screens/LoginScreen';
 import Register from '../screens/Register';
 
 import Header from '../components/Header';
-import AsyncStorage from '@react-native-async-storage/async-storage';
 
 export type RootStackParamList = {
     Login: undefined;
