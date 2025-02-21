@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { NavigationContainer } from '@react-navigation/native';
@@ -11,10 +11,11 @@ import LoginScreen from '../screens/LoginScreen';
 import Register from '../screens/Register';
 
 import Header from '../components/Header';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 export type RootStackParamList = {
     Login: undefined;
-    Main: { username: string };
+    Main: undefined;
     Register: undefined;
 };
 
@@ -28,11 +29,10 @@ export type RootTabParamList = {
 const Stack = createNativeStackNavigator<RootStackParamList>();
 const Tab = createBottomTabNavigator<RootTabParamList>();
 
-const BottomTabs = ({ route }: any) => {
-    const { username } = route.params;
+const BottomTabs = () => {
     return (
         <>
-            <Header username={username} />
+            <Header />
             <Tab.Navigator screenOptions={{
                 headerShown: false,
                 tabBarIcon: () => null,

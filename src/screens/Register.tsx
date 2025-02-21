@@ -11,11 +11,22 @@ const db = SQLite.openDatabase(
 export default function Register({ navigation }: any) {
     const [username, setUsername] = useState('');
     const [password, setPassword] = useState('');
+    const [email, setEmail] = useState('');
 
     const createTable = () => {
         db.transaction((tx) => {
             tx.executeSql(
-                'CREATE TABLE IF NOT EXISTS users (id INTEGER PRIMARY KEY AUTOINCREMENT, username TEXT, password TEXT);',
+                `CREATE TABLE IF NOT EXISTS users (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT, 
+                    username TEXT, 
+                    email TEXT, 
+                    password TEXT, 
+                    height REAL, 
+                    weight REAL, 
+                    sex TEXT, 
+                    dob TEXT, 
+                    activityLevel REAL
+                );`,
                 [],
                 () => console.log('Users table created successfully'),
                 (error) => console.log('Error creating users table', error)
@@ -23,8 +34,9 @@ export default function Register({ navigation }: any) {
         });
     };
 
+
     const registerUser = () => {
-        if (username && password) {
+        if (username && email && password) {
             db.transaction((tx) => {
                 // Check if username already exists
                 tx.executeSql(
@@ -36,8 +48,8 @@ export default function Register({ navigation }: any) {
                         } else {
                             // If username is unique, insert new user
                             tx.executeSql(
-                                'INSERT INTO users (username, password) VALUES (?, ?);',
-                                [username, password],
+                                'INSERT INTO users (username, email, password) VALUES (?, ?, ?);',
+                                [username, email, password],
                                 () => {
                                     Alert.alert('Registration Successful', 'You can now log in');
                                     navigation.navigate('Login');
@@ -72,6 +84,12 @@ export default function Register({ navigation }: any) {
                 placeholder="Username"
                 value={username}
                 onChangeText={setUsername}
+            />
+            <TextInput
+                style={styles.input}
+                placeholder="Email"
+                value={email}
+                onChangeText={setEmail}
             />
             <TextInput
                 style={styles.input}

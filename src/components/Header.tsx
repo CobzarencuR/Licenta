@@ -1,11 +1,24 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet } from 'react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
-interface HeaderProps {
-    username: string;
-}
-
-const Header: React.FC<HeaderProps> = ({ username }) => {
+const Header: React.FC = () => {
+    const [username, setUsername] = useState<string | null>(null);
+    useEffect(() => {
+        const fetchUsername = async () => {
+            try {
+                const storedUsername = await AsyncStorage.getItem('loggedInUsername');
+                if (storedUsername) {
+                    setUsername(storedUsername);
+                } else {
+                    console.log('No logged-in user found.');
+                }
+            } catch (error) {
+                console.error('Failed to load username:', error);
+            }
+        };
+        fetchUsername();
+    }, []);
     return (
         <View style={styles.header}>
             <Text style={styles.headerText}>MyFitnessApp</Text>

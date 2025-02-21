@@ -5,6 +5,7 @@ import { RootStackParamList } from '../navigation/AppNavigator';
 import SQLite from 'react-native-sqlite-storage';
 import Toast from 'react-native-toast-message';
 import { ToastAndroid } from 'react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const db = SQLite.openDatabase(
     { name: 'fitnessApp.db', location: 'default' },
@@ -18,16 +19,18 @@ export default function LoginScreen({ navigation }: Props) {
     const [username, setUsername] = useState('');
     const [password, setPassword] = useState('');
 
-    const loginUser = () => {
+    const loginUser = async () => {
         if (username && password) {
             db.transaction((tx) => {
                 tx.executeSql(
                     'SELECT * FROM users WHERE username = ? AND password = ?;',
                     [username, password],
-                    (tx, results) => {
+                    async (tx, results) => {
                         if (results.rows.length > 0) {
-                            setUsername(username);
-                            navigation.navigate('Main', { username }); // Navigate to Main screen with username
+                            // setUsername(username);
+                            await AsyncStorage.setItem('loggedInUsername', username);
+                            // navigation.navigate('Main', { username }); // Navigate to Main screen with username
+                            navigation.navigate('Main');
                         } else {
                             Alert.alert('Error', 'Invalid username or password');
                         }
