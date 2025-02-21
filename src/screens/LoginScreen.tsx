@@ -3,8 +3,6 @@ import { View, Text, TextInput, Button, StyleSheet, Alert, TouchableOpacity } fr
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../navigation/AppNavigator';
 import SQLite from 'react-native-sqlite-storage';
-import Toast from 'react-native-toast-message';
-import { ToastAndroid } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const db = SQLite.openDatabase(
