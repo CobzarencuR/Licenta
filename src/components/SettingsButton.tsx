@@ -3,7 +3,8 @@ import { TouchableOpacity } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import Icon from 'react-native-vector-icons/Ionicons';
 
-const SettingsButton: React.FC = () => {
+
+export default function SettingsButton() {
     const navigation = useNavigation();
     return (
         <TouchableOpacity onPress={() => navigation.navigate('Settings' as never)}>
@@ -11,5 +12,3 @@ const SettingsButton: React.FC = () => {
         </TouchableOpacity>
     );
 };
-
-export default SettingsButton;

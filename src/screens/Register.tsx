@@ -103,8 +103,8 @@ export default function Register({ navigation }: any) {
                 onChangeText={setPassword}
             />
             {/* <Button title="Register" onPress={registerUser} /> */}
-            <TouchableOpacity onPress={registerUser}>
-                <Text style={styles.input}>Register</Text>
+            <TouchableOpacity style={styles.button} onPress={registerUser}>
+                <Text style={styles.buttonText}>Register</Text>
             </TouchableOpacity>
         </View>
     );
@@ -114,4 +114,6 @@ const styles = StyleSheet.create({
     container: { flex: 1, justifyContent: 'center', alignItems: 'center', padding: 20 },
     header: { fontSize: 24, fontWeight: 'bold', marginBottom: 20 },
     input: { width: '100%', padding: 10, borderWidth: 1, borderRadius: 5, marginBottom: 10 },
+    button: { width: '50%', alignSelf: 'center', backgroundColor: '#007BFF', padding: 10, borderRadius: 5, alignItems: 'center', marginTop: 10 },
+    buttonText: { color: 'white', fontWeight: 'bold' },
 });

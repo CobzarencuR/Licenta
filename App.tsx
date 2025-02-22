@@ -7,7 +7,6 @@
 
 import React from 'react';
 import AppNavigator from './src/navigation/AppNavigator';
-import { useEffect } from 'react';
 
 function App() {
     return (

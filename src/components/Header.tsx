@@ -4,7 +4,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import SettingsButton from './SettingsButton';
 
 
-const Header: React.FC = () => {
+export default function Header() {
     const [username, setUsername] = useState<string | null>(null);
 
     useEffect(() => {
@@ -50,5 +50,3 @@ const styles = StyleSheet.create({
         color: 'white',
     },
 });
-
-export default Header;
