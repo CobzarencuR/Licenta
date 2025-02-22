@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, TextInput, Button, Image, StyleSheet, Alert, TouchableOpacity } from 'react-native';
+import { View, Text, TextInput, Button, Image, StyleSheet, Alert, TouchableOpacity, ScrollView } from 'react-native';
 import SQLite from 'react-native-sqlite-storage';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -201,12 +201,16 @@ export default function ProfileScreen() {
 
             <View style={styles.row}>
                 <Text style={styles.label}>Height (cm):</Text>
-                <TextInput placeholder="Insert height" value={height} onChangeText={setHeight} keyboardType="numeric" />
+                <View style={styles.value}>
+                    <TextInput placeholder="Insert height" value={height} onChangeText={setHeight} keyboardType="numeric" />
+                </View>
             </View>
 
             <View style={styles.row}>
                 <Text style={styles.label}>Weight (kg):</Text>
-                <TextInput placeholder="Insert weight" value={weight} onChangeText={setWeight} keyboardType="numeric" />
+                <View style={styles.value}>
+                    <TextInput placeholder="Insert weight" value={weight} onChangeText={setWeight} keyboardType="numeric" />
+                </View>
             </View>
 
             <View style={styles.row}>
@@ -266,28 +270,27 @@ export default function ProfileScreen() {
                 />
             </View>
 
-            <TouchableOpacity style={styles.button} onPress={updateProfile}>
+            <TouchableOpacity style={styles.savebutton} onPress={updateProfile}>
                 <Text style={styles.buttonText}>Save Profile</Text>
             </TouchableOpacity>
 
             <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
-                <Text style={styles.logoutText}>Logout</Text>
+                <Text style={styles.buttonText}>Logout</Text>
             </TouchableOpacity>
-        </View>
+        </View >
     );
 }
 
 const styles = StyleSheet.create({
-    container: { flex: 1, padding: 20, backgroundColor: '#fff' },
+    container: { flex: 1, paddingVertical: 20, backgroundColor: '#fff' },
     header: { fontSize: 24, fontWeight: 'bold', marginBottom: 20, textAlign: 'center' },
-    row: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 15 },
-    label: { fontSize: 16, fontWeight: '500' },
-    value: { fontSize: 16, color: '#333' },
-    dropdownButton: { padding: 10, borderWidth: 1, borderRadius: 5, borderColor: '#ccc', width: 'auto' },
-    dropdown: { backgroundColor: '#fff', borderColor: '#ccc', borderRadius: 5, width: 100, },
-    button: { width: '50%', alignSelf: 'center', backgroundColor: '#007BFF', padding: 10, borderRadius: 5, alignItems: 'center', marginTop: 20 },
+    row: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', borderBottomWidth: 1, borderBottomColor: '#ccc', height: 50, marginHorizontal: 15 },
+    label: { fontSize: 18, marginLeft: 15 },
+    value: { fontSize: 16, color: '#333', marginRight: 15 },
+    dropdownButton: { borderWidth: 1, borderRadius: 5, borderColor: '#ccc', width: 'auto' },
+    dropdown: { backgroundColor: '#fff', borderColor: '#ccc', borderRadius: 5, width: 100, marginRight: 15 },
+    savebutton: { width: '50%', alignSelf: 'center', backgroundColor: '#007BFF', padding: 10, borderRadius: 5, alignItems: 'center', marginTop: 50 },
     buttonText: { color: 'white', fontWeight: 'bold' },
-    logoutButton: { width: '50%', alignSelf: 'center', backgroundColor: '#FF3B30', padding: 10, borderRadius: 5, alignItems: 'center', marginTop: 10 },
-    logoutText: { color: 'white', fontWeight: 'bold' }
+    logoutButton: { width: '50%', alignSelf: 'center', backgroundColor: '#FF3B30', padding: 10, borderRadius: 5, alignItems: 'center', marginTop: 15 },
 });
 

@@ -18,6 +18,7 @@ export type RootStackParamList = {
     Main: undefined;
     Register: undefined;
     Settings: undefined;
+    Profile: undefined;
 };
 
 export type RootTabParamList = {
@@ -67,6 +68,7 @@ export default function AppNavigator() {
                 <Stack.Screen name="Register" component={Register} />
                 <Stack.Screen name="Main" component={BottomTabs} />
                 <Stack.Screen name="Settings" component={SettingsScreen} />
+                <Stack.Screen name="Profile" component={ProfileScreen} />
             </Stack.Navigator>
         </NavigationContainer>
     );

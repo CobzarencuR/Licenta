@@ -61,12 +61,12 @@ export default function LoginScreen({ navigation }: Props) {
                 onChangeText={setPassword}
             />
             {/* <Button title="Login" onPress={loginUser} /> */}
-            <TouchableOpacity onPress={loginUser}>
-                <Text style={styles.input}>LOGIN</Text>
+            <TouchableOpacity style={styles.button} onPress={loginUser}>
+                <Text style={styles.buttonText}>LOGIN</Text>
             </TouchableOpacity>
             {/* <Button title="Go to Register" onPress={() => navigation.navigate('Register')} /> */}
-            <TouchableOpacity onPress={() => navigation.navigate('Register')}>
-                <Text style={styles.input}>GO TO REGISTER</Text>
+            <TouchableOpacity style={styles.button} onPress={() => navigation.navigate('Register')}>
+                <Text style={styles.buttonText}>GO TO REGISTER</Text>
             </TouchableOpacity>
         </View>
     );
@@ -76,4 +76,6 @@ const styles = StyleSheet.create({
     container: { flex: 1, justifyContent: 'center', alignItems: 'center' },
     text: { fontSize: 20, fontWeight: 'bold', marginBottom: 20 },
     input: { width: '80%', padding: 10, borderWidth: 1, borderRadius: 5, marginBottom: 10 },
+    button: { width: '50%', alignSelf: 'center', backgroundColor: '#007BFF', padding: 10, borderRadius: 5, alignItems: 'center', marginTop: 10 },
+    buttonText: { color: 'white', fontWeight: 'bold' },
 });
