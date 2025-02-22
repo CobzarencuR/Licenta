@@ -11,11 +11,13 @@ import LoginScreen from '../screens/LoginScreen';
 import Register from '../screens/Register';
 
 import Header from '../components/Header';
+import SettingsScreen from '../screens/SettingsScreen';
 
 export type RootStackParamList = {
     Login: undefined;
     Main: undefined;
     Register: undefined;
+    Settings: undefined;
 };
 
 export type RootTabParamList = {
@@ -64,6 +66,7 @@ export default function AppNavigator() {
                 <Stack.Screen name="Login" component={LoginScreen} />
                 <Stack.Screen name="Register" component={Register} />
                 <Stack.Screen name="Main" component={BottomTabs} />
+                <Stack.Screen name="Settings" component={SettingsScreen} />
             </Stack.Navigator>
         </NavigationContainer>
     );

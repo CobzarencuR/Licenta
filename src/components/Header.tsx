@@ -1,9 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import SettingsButton from './SettingsButton';
+
 
 const Header: React.FC = () => {
     const [username, setUsername] = useState<string | null>(null);
+
     useEffect(() => {
         const fetchUsername = async () => {
             try {
@@ -23,6 +26,7 @@ const Header: React.FC = () => {
         <View style={styles.header}>
             <Text style={styles.usernameText}>{username}</Text>
             <Text style={styles.headerText}>MyFitnessApp</Text>
+            <SettingsButton />
         </View>
     );
 };
@@ -30,17 +34,16 @@ const Header: React.FC = () => {
 const styles = StyleSheet.create({
     header: {
         backgroundColor: '#007AFF',
-        padding: 15,
+        paddingHorizontal: 25,
+        paddingVertical: 10,
         flexDirection: 'row',
         alignItems: 'center',
+        justifyContent: 'space-between',
     },
     headerText: {
         fontSize: 22,
         fontWeight: 'bold',
         color: 'white',
-        position: 'absolute',
-        right: '50%',
-        transform: [{ translateX: '42.5%' }],
     },
     usernameText: {
         fontSize: 14,
