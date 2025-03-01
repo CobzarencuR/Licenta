@@ -164,17 +164,51 @@ export default function ProfileScreen() {
                         SET height = ?, weight = ?, sex = ?, dob = ?, age = ?, activityLevel = ?, objective = ?, calories = ?, protein = ?, carbs = ?, fats = ?
                         WHERE username = ?;`,
                 [height, weight, sex, dob.toISOString().split('T')[0], age, activityLevel, objective, macros.totalCalories, macros.protein, macros.carbs, macros.fat, username],
-                (_, result) => {
+                async (_, result) => {
                     console.log('Rows affected:', result.rowsAffected);
                     if (result.rowsAffected > 0) {
                         Alert.alert('Success', 'Profile updated successfully');
+                        // Now send the updated data to PostgreSQL
+                        try {
+                            const response = await fetch('http://10.0.2.2:3000/updateProfile', {
+                                method: 'POST',
+                                headers: {
+                                    'Content-Type': 'application/json',
+                                },
+                                body: JSON.stringify({
+                                    username: storedUsername,
+                                    height,
+                                    weight,
+                                    sex,
+                                    dob: dob.toISOString().split('T')[0],
+                                    age,
+                                    activityLevel,
+                                    objective,
+                                    calories: macros.totalCalories,
+                                    protein: macros.protein,
+                                    carbs: macros.carbs,
+                                    fats: macros.fat,
+                                }),
+                            });
+
+                            const data = await response.json();
+                            console.log('Response from server:', data);
+                            if (response.ok) {
+                                console.log('Profile updated in PostgreSQL:', data);
+                            } else {
+                                console.log('Error updating profile in PostgreSQL:', data.message);
+                            }
+                        } catch (error) {
+                            console.error('Error connecting to the server:', error);
+                            Alert.alert('Error', 'Failed to update profile in PostgreSQL');
+                        }
                     } else {
-                        Alert.alert('Error', 'All fields must be filled in');
+                        Alert.alert('Error', 'Could not update profile in SQLite');
                     }
                 },
                 (error) => {
                     console.log('Error updating profile:', error);
-                    Alert.alert('Database Error', (error as any).message);
+                    Alert.alert('Database Error', 'error');
                 }
             );
         });
@@ -202,14 +236,14 @@ export default function ProfileScreen() {
             <View style={styles.row}>
                 <Text style={styles.label}>Height (cm):</Text>
                 <View style={styles.value}>
-                    <TextInput placeholder="Insert height" value={height} onChangeText={setHeight} keyboardType="numeric" />
+                    <TextInput placeholder="Insert height" value={height} onChangeText={(text) => setHeight(text.replace(',', '.'))} keyboardType="numeric" />
                 </View>
             </View>
 
             <View style={styles.row}>
                 <Text style={styles.label}>Weight (kg):</Text>
                 <View style={styles.value}>
-                    <TextInput placeholder="Insert weight" value={weight} onChangeText={setWeight} keyboardType="numeric" />
+                    <TextInput placeholder="Insert weight" value={weight} onChangeText={(text) => setWeight(text.replace(',', '.'))} keyboardType="numeric" />
                 </View>
             </View>
 
