@@ -54,9 +54,28 @@ export default function Register({ navigation }: any) {
                             tx.executeSql(
                                 'INSERT INTO users (username, email, password) VALUES (?, ?, ?);',
                                 [username, email, password],
-                                () => {
-                                    Alert.alert('Registration Successful', 'You can now log in');
-                                    navigation.navigate('Login');
+                                async () => {
+                                    // Send data to PostgreSQL
+                                    try {
+                                        const response = await fetch('http://10.0.2.2:3000/register', {
+                                            method: 'POST',
+                                            headers: {
+                                                'Content-Type': 'application/json',
+                                            },
+                                            body: JSON.stringify({ username, email, password }),
+                                        });
+
+                                        const data = await response.json();
+                                        if (response.ok) {
+                                            Alert.alert('Registration Successful', 'You can now log in');
+                                            navigation.navigate('Login');
+                                        } else {
+                                            Alert.alert('Error', data.message || 'Could not register user in PostgreSQL');
+                                        }
+                                    } catch (error) {
+                                        Alert.alert('Error', 'Failed to connect to the server');
+                                        console.log('PostgreSQL registration error:', error);
+                                    }
                                 },
                                 (error) => {
                                     Alert.alert('Error', 'Could not register user');
