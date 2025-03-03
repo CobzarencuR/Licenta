@@ -109,7 +109,7 @@ export default function ProfileScreen() {
             return null;
         }
 
-        const totalCalories = BMR * activityMultiplier;
+        let totalCalories = BMR * activityMultiplier;
 
         const proteinGrams = weightKg * 1.75;
         const fatGrams = weightKg * 0.88;
@@ -122,10 +122,12 @@ export default function ProfileScreen() {
             carbsCalories = totalCalories - (proteinCalories + fatCalories);
             carbsGrams = carbsCalories / 4;
         } else if (objective === 'lose') {
-            carbsCalories = totalCalories - (proteinCalories + fatCalories) - 300;
+            totalCalories -= 300;
+            carbsCalories = totalCalories - (proteinCalories + fatCalories);
             carbsGrams = carbsCalories / 4;
         } else if (objective === 'gain') {
-            carbsCalories = totalCalories - (proteinCalories + fatCalories) + 150;
+            totalCalories += 150;
+            carbsCalories = totalCalories - (proteinCalories + fatCalories);
             carbsGrams = carbsCalories / 4;
         }
 
