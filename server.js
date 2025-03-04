@@ -23,29 +23,6 @@ pool.connect()
     .then(() => console.log('Connected to PostgreSQL'))
     .catch(err => console.error('Error connecting to PostgreSQL', err));
 
-// Create users table if not exists
-// pool.query(`
-// CREATE TABLE IF NOT EXISTS users (
-//     id SERIAL PRIMARY KEY, 
-//     username TEXT UNIQUE, 
-//     email TEXT, 
-//     password TEXT, 
-//     height REAL, 
-//     weight REAL, 
-//     sex TEXT, 
-//     dob TEXT,
-//     age INTEGER,
-//     activityLevel REAL,
-//     objective TEXT,
-//     calories REAL,
-//     protein REAL,
-//     carbs REAL,
-//     fats REAL
-// );
-//     `, (err) => {
-//     if (err) console.error('Error creating users table', err);
-// });
-
 // Register User API
 app.post('/register', async (req, res) => {
     const { username, email, password } = req.body;
