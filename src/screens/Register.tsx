@@ -37,9 +37,40 @@ export default function Register({ navigation }: any) {
                 () => console.log('Users table created successfully'),
                 (error) => console.log('Error creating users table', error)
             );
+
+            // Create meals table
+            tx.executeSql(
+                `CREATE TABLE IF NOT EXISTS meals (
+                mealId INTEGER PRIMARY KEY AUTOINCREMENT, 
+                user_id INTEGER NOT NULL,  
+                name TEXT NOT NULL,
+                FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+            );`,
+                [],
+                () => console.log('Meals table created successfully'),
+                (error) => console.log('Error creating meals table', error)
+            );
+
+            // Create foods table
+            tx.executeSql(
+                `CREATE TABLE IF NOT EXISTS foods (
+                foodId INTEGER PRIMARY KEY AUTOINCREMENT,
+                mealId INTEGER NOT NULL,
+                foodName TEXT NOT NULL,
+                grams REAL NOT NULL,
+                category TEXT NOT NULL,
+                calories REAL NOT NULL,
+                protein REAL NOT NULL,
+                carbs REAL NOT NULL,
+                fats REAL NOT NULL,
+                FOREIGN KEY (mealId) REFERENCES meals(mealId) ON DELETE CASCADE
+            );`,
+                [],
+                () => console.log('Foods table created successfully'),
+                (error) => console.log('Error creating foods table', error)
+            );
         });
     };
-
 
     const registerUser = () => {
         if (username && email && password) {
@@ -136,3 +167,4 @@ const styles = StyleSheet.create({
     button: { width: '50%', alignSelf: 'center', backgroundColor: '#007BFF', padding: 10, borderRadius: 5, alignItems: 'center', marginTop: 10 },
     buttonText: { color: 'white', fontWeight: 'bold' },
 });
+

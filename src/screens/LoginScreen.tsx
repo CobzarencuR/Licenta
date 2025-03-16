@@ -25,6 +25,8 @@ export default function LoginScreen({ navigation }: Props) {
                     [username, password],
                     async (tx, results) => {
                         if (results.rows.length > 0) {
+                            const userId = results.rows.item(0).id;
+                            await AsyncStorage.setItem('loggedInUserId', userId.toString());
                             // setUsername(username);
                             await AsyncStorage.setItem('loggedInUsername', username);
                             // navigation.navigate('Main', { username }); // Navigate to Main screen with username

@@ -21,7 +21,7 @@ export default function SettingsScreen({ navigation }: Props) {
                 <TouchableOpacity
                     key={option.screen}
                     style={styles.option}
-                    onPress={() => navigation.navigate(option.screen as keyof RootStackParamList)}
+                    onPress={() => navigation.navigate(option.screen as any)}
                 // onPress={() => navigation.navigate("Main", { screen: option.screen } as never)}
                 >
                     <Text style={styles.optionText}>{option.name}</Text>
