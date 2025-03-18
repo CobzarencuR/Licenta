@@ -22,6 +22,8 @@ type MealContextType = {
     addFoodToMeal: (mealId: number, food: Food) => void;
     updateFoodInMeal: (mealId: number, updatedFood: Food) => void;
     deleteMeal: (mealId: number) => void;
+    removeFoodFromMeal: (mealId: number, foodId: number) => void;
+    moveFoodToMeal: (sourceMealId: number, destinationMealId: number, food: Food) => void;
 };
 
 export const MealContext = createContext<MealContextType>({
@@ -29,7 +31,9 @@ export const MealContext = createContext<MealContextType>({
     addMeal: () => { },
     addFoodToMeal: () => { },
     updateFoodInMeal: () => { },
-    deleteMeal: () => { }
+    deleteMeal: () => { },
+    removeFoodFromMeal: () => { },
+    moveFoodToMeal: () => { }
 });
 
 type Props = {
@@ -87,8 +91,36 @@ export const MealProvider = ({ children }: Props) => {
         });
     };
 
+    // Remove a single food from a meal.
+    const removeFoodFromMeal = (mealId: number, foodId: number) => {
+        setMeals((prevMeals) =>
+            prevMeals.map((meal) =>
+                meal.id === mealId
+                    ? { ...meal, foods: meal.foods.filter((food) => food.id !== foodId) }
+                    : meal
+            )
+        );
+        console.log(`Removed food ${foodId} from meal ${mealId}`);
+    };
+
+    // Move a food from one meal to another.
+    const moveFoodToMeal = (sourceMealId: number, destinationMealId: number, food: Food) => {
+        setMeals((prevMeals) =>
+            prevMeals.map((meal) => {
+                if (meal.id === sourceMealId) {
+                    return { ...meal, foods: meal.foods.filter((f) => f.id !== food.id) };
+                }
+                if (meal.id === destinationMealId) {
+                    return { ...meal, foods: [...meal.foods, food] };
+                }
+                return meal;
+            })
+        );
+        console.log(`Moved food ${food.id} from meal ${sourceMealId} to meal ${destinationMealId}`);
+    };
+
     return (
-        <MealContext.Provider value={{ meals, addMeal, addFoodToMeal, updateFoodInMeal, deleteMeal }}>
+        <MealContext.Provider value={{ meals, addMeal, addFoodToMeal, updateFoodInMeal, deleteMeal, removeFoodFromMeal, moveFoodToMeal }}>
             {children}
         </MealContext.Provider>
     );
