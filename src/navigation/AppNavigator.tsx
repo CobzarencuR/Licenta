@@ -11,7 +11,6 @@ import LoginScreen from '../screens/LoginScreen';
 import Register from '../screens/Register';
 import SettingsScreen from '../screens/SettingsScreen';
 import MealCategoryScreen from '../screens/MealCategoryScreen';
-import FoodListScreen from '../screens/FoodListScreen';
 import FoodDetailScreen from '../screens/FoodDetailScreen';
 import Header from '../components/Header';
 import { MealProvider } from '../context/MealContext';
@@ -23,7 +22,6 @@ export type RootStackParamList = {
     Settings: undefined;
     Profile: undefined;
     MealCategory: { mealId: number };
-    FoodList: { category: string; mealId: number };
     FoodDetail: { mealId: number; food: any };
 };
 
@@ -76,7 +74,6 @@ export default function AppNavigator() {
                     <Stack.Screen name="Settings" component={SettingsScreen} />
                     <Stack.Screen name="Profile" component={ProfileScreen} />
                     <Stack.Screen name="MealCategory" component={MealCategoryScreen} />
-                    <Stack.Screen name="FoodList" component={FoodListScreen} />
                     <Stack.Screen name="FoodDetail" component={FoodDetailScreen} />
                 </Stack.Navigator>
             </NavigationContainer>
