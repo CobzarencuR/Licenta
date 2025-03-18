@@ -1,12 +1,22 @@
-import React, { useContext, useState } from 'react';
+import React, { useContext, useEffect, useState } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, ScrollView, Alert, Modal } from 'react-native';
 import { MealContext } from '../context/MealContext';
 import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../navigation/AppNavigator';
+import SQLite from 'react-native-sqlite-storage';
+import UserRemainingMacros from '../components/UserRemainingMacros';
 
 type MealScreenNavigationProp = NativeStackNavigationProp<RootStackParamList, 'MealCategory'>;
+
+const db = SQLite.openDatabase(
+    { name: 'fitnessApp.db', location: 'default' },
+    () => console.log('Database opened successfully'),
+    (error) => console.log('Error opening database:', error)
+);
+
 const MealScreen = () => {
+    const [user, setUser] = useState<any>(null);
     const { meals, addMeal, deleteMeal, removeFoodFromMeal, moveFoodToMeal } = useContext(MealContext);
     const navigation = useNavigation<MealScreenNavigationProp>();
     // State to manage modals and selection
@@ -38,57 +48,85 @@ const MealScreen = () => {
         (meal) => meal.id !== selectedMealId
     );
 
+    // Helper to compute totals for a meal.
+    const computeMealTotals = (foods: any[]) => {
+        return foods.reduce(
+            (totals, food) => {
+                totals.calories += food.calories;
+                totals.protein += food.protein;
+                totals.carbs += food.carbs;
+                totals.fats += food.fats;
+                return totals;
+            },
+            { calories: 0, protein: 0, carbs: 0, fats: 0 }
+        );
+    };
+
     return (
         <>
             <ScrollView contentContainerStyle={styles.container}>
+
+                <UserRemainingMacros />
+
                 <TouchableOpacity style={styles.addMealButton} onPress={addMeal}>
                     <Text style={styles.addMealText}>AddMeal</Text>
                 </TouchableOpacity>
 
-                {meals.map((meal) => (
-                    <View key={meal.id} style={styles.mealBox}>
-                        <Text style={styles.mealTitle}>{meal.title}</Text>
-                        <TouchableOpacity
-                            style={styles.deleteMealButton}
-                            onPress={() => handleDeleteMeal(meal.id)}
-                        >
-                            <Text style={styles.deleteMealText}>X</Text>
-                        </TouchableOpacity>
-                        {meal.foods.length === 0 ? (
-                            <Text style={styles.noFoodsText}>No foods added</Text>
-                        ) : (
-                            meal.foods.map((food) => (
+                {meals.map((meal) => {
+                    // Compute totals for this meal.
+                    const totals = computeMealTotals(meal.foods);
+                    return (
+                        <View key={meal.id} style={styles.mealBox}>
+                            <View style={styles.mealHeader}>
+                                <Text style={styles.mealTitle}>
+                                    {meal.title} {'\n'}
+                                    <Text style={styles.mealTotals}>
+                                        {totals.calories} kcal | P: {totals.protein.toFixed(1)}g C: {totals.carbs.toFixed(1)}g F: {totals.fats.toFixed(1)}g
+                                    </Text>
+                                </Text>
                                 <TouchableOpacity
-                                    key={food.id}
-                                    style={styles.foodItem}
-                                    // Short press to edit.
-                                    onPress={() =>
-                                        navigation.navigate('FoodDetail', { mealId: meal.id, food })
-                                    }
-                                    // Long press to show options.
-                                    onLongPress={() => handleFoodLongPress(meal.id, food)}
+                                    style={styles.deleteMealButton}
+                                    onPress={() => handleDeleteMeal(meal.id)}
                                 >
-                                    <Text style={styles.foodName}>{food.foodname}</Text>
-                                    <Text style={styles.foodDetails}>
-                                        {food.grams}g | {food.calories} kcal
-                                    </Text>
-                                    <Text style={styles.foodDetails}>
-                                        P: {food.protein}g C: {food.carbs}g F: {food.fats}g
-                                    </Text>
+                                    <Text style={styles.deleteMealText}>X</Text>
                                 </TouchableOpacity>
-                            ))
-                        )}
-                        <TouchableOpacity
-                            style={styles.addFoodButton}
-                            onPress={() =>
-                                // Navigate to MealCategory and pass the mealId for adding new food.
-                                navigation.navigate('MealCategory', { mealId: meal.id })
-                            }
-                        >
-                            <Text style={styles.addFoodText}>AddFood</Text>
-                        </TouchableOpacity>
-                    </View>
-                ))}
+                            </View>
+                            {meal.foods.length === 0 ? (
+                                <Text style={styles.noFoodsText}>No foods added</Text>
+                            ) : (
+                                meal.foods.map((food) => (
+                                    <TouchableOpacity
+                                        key={food.id}
+                                        style={styles.foodItem}
+                                        // Short press to edit.
+                                        onPress={() =>
+                                            navigation.navigate('FoodDetail', { mealId: meal.id, food })
+                                        }
+                                        // Long press to show options.
+                                        onLongPress={() => handleFoodLongPress(meal.id, food)}
+                                    >
+                                        <Text style={styles.foodName}>{food.foodname}</Text>
+                                        <Text style={styles.foodDetails}>
+                                            {food.grams}g | {food.calories} kcal
+                                        </Text>
+                                        <Text style={styles.foodDetails}>
+                                            P: {food.protein}g C: {food.carbs}g F: {food.fats}g
+                                        </Text>
+                                    </TouchableOpacity>
+                                ))
+                            )}
+                            <TouchableOpacity
+                                style={styles.addFoodButton}
+                                onPress={() =>
+                                    // Navigate to MealCategory and pass the mealId for adding new food.
+                                    navigation.navigate('MealCategory', { mealId: meal.id })
+                                }
+                            >
+                                <Text style={styles.addFoodText}>AddFood</Text>
+                            </TouchableOpacity>
+                        </View>
+                    );
+                })}
             </ScrollView>
 
             {/* Option Modal: Cancel, Delete, Move */}
@@ -168,6 +206,16 @@ const MealScreen = () => {
 
 const styles = StyleSheet.create({
     container: { padding: 16 },
+    title: {
+        fontSize: 18,
+        fontWeight: 'bold',
+        marginBottom: 8,
+        textAlign: 'center',
+    },
+    text: {
+        fontSize: 16,
+        textAlign: 'center',
+    },
     addMealButton: {
         backgroundColor: '#007BFF',
         padding: 10,
@@ -253,6 +301,7 @@ const styles = StyleSheet.create({
         fontSize: 18,
         textAlign: 'center',
     },
+    mealTotals: { fontSize: 14, color: '#555' },
 });
 
 export default MealScreen;
