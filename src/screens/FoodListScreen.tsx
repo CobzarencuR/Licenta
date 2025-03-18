@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, FlatList, ActivityIndicator } from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet, FlatList, ActivityIndicator, TextInput } from 'react-native';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../navigation/AppNavigator';
@@ -10,6 +10,7 @@ const FoodListScreen = () => {
     const { category, mealId } = route.params as { category: string; mealId: number };
     const [foods, setFoods] = useState<any[]>([]);
     const [loading, setLoading] = useState<boolean>(true);
+    const [searchQuery, setSearchQuery] = useState('');
 
     useEffect(() => {
         fetch(`http://10.0.2.2:3000/getFoodsByCategory?category=${category}`)
@@ -28,6 +29,11 @@ const FoodListScreen = () => {
                 setLoading(false);
             });
     }, [category]);
+
+    // Filter foods based on search query
+    const filteredFoods = foods.filter((food) =>
+        (food.foodname ? food.foodname.toLowerCase() : '').includes(searchQuery.toLowerCase())
+    );
 
     const renderItem = ({ item }: { item: any }) => (
         <TouchableOpacity
@@ -51,8 +57,14 @@ const FoodListScreen = () => {
     return (
         <View style={styles.container}>
             <Text style={styles.header}>Foods in {category}</Text>
+            <TextInput
+                style={styles.searchBar}
+                placeholder="Search foods..."
+                value={searchQuery}
+                onChangeText={setSearchQuery}
+            />
             <FlatList
-                data={foods}
+                data={filteredFoods}
                 // Use item.foodId if it exists, otherwise fallback to index as key
                 keyExtractor={(item, index) => (item.foodId ? item.foodId.toString() : index.toString())}
                 renderItem={renderItem}
@@ -72,7 +84,14 @@ const styles = StyleSheet.create({
         marginBottom: 12,
         alignItems: 'center',
     },
-    foodText: { color: '#FFF', fontWeight: 'bold', fontSize: 16 },
+    foodText: { color: '#FFF', fontWeight: 'bold', fontSize: 16 }, searchBar: {
+        borderWidth: 1,
+        borderColor: '#ccc',
+        borderRadius: 8,
+        paddingHorizontal: 12,
+        paddingVertical: 8,
+        marginBottom: 16,
+    },
 });
 
 export default FoodListScreen;
