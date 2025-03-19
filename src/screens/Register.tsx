@@ -17,7 +17,8 @@ export default function Register({ navigation }: any) {
         db.transaction((tx) => {
             tx.executeSql(
                 `CREATE TABLE IF NOT EXISTS users (
-                    id INTEGER PRIMARY KEY AUTOINCREMENT, 
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    photoUri TEXT,
                     username TEXT, 
                     email TEXT, 
                     password TEXT, 

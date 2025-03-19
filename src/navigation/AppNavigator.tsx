@@ -14,6 +14,7 @@ import MealCategoryScreen from '../screens/MealCategoryScreen';
 import FoodDetailScreen from '../screens/FoodDetailScreen';
 import Header from '../components/Header';
 import { MealProvider } from '../context/MealContext';
+import { UserProvider } from '../context/UserContext';
 
 export type RootStackParamList = {
     Login: undefined;
@@ -65,18 +66,20 @@ const BottomTabs = () => {
 
 export default function AppNavigator() {
     return (
-        <MealProvider>
-            <NavigationContainer>
-                <Stack.Navigator screenOptions={{ headerShown: false }}>
-                    <Stack.Screen name="Login" component={LoginScreen} />
-                    <Stack.Screen name="Register" component={Register} />
-                    <Stack.Screen name="Main" component={BottomTabs} />
-                    <Stack.Screen name="Settings" component={SettingsScreen} />
-                    <Stack.Screen name="Profile" component={ProfileScreen} />
-                    <Stack.Screen name="MealCategory" component={MealCategoryScreen} />
-                    <Stack.Screen name="FoodDetail" component={FoodDetailScreen} />
-                </Stack.Navigator>
-            </NavigationContainer>
-        </MealProvider>
+        <UserProvider>
+            <MealProvider>
+                <NavigationContainer>
+                    <Stack.Navigator screenOptions={{ headerShown: false }}>
+                        <Stack.Screen name="Login" component={LoginScreen} />
+                        <Stack.Screen name="Register" component={Register} />
+                        <Stack.Screen name="Main" component={BottomTabs} />
+                        <Stack.Screen name="Settings" component={SettingsScreen} />
+                        <Stack.Screen name="Profile" component={ProfileScreen} />
+                        <Stack.Screen name="MealCategory" component={MealCategoryScreen} />
+                        <Stack.Screen name="FoodDetail" component={FoodDetailScreen} />
+                    </Stack.Navigator>
+                </NavigationContainer>
+            </MealProvider>
+        </UserProvider>
     );
 }

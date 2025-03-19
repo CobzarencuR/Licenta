@@ -1,10 +1,12 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useContext } from 'react';
 import { View, Text, TextInput, Button, Image, StyleSheet, Alert, TouchableOpacity, ScrollView } from 'react-native';
 import SQLite from 'react-native-sqlite-storage';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Dropdown } from 'react-native-element-dropdown';
 import { useNavigation } from '@react-navigation/native';
+import { launchImageLibrary, ImageLibraryOptions } from 'react-native-image-picker';
+import { UserContext } from '../context/UserContext';
 
 const db = SQLite.openDatabase(
     { name: 'fitnessApp.db', location: 'default' },
@@ -15,6 +17,7 @@ const db = SQLite.openDatabase(
 export default function ProfileScreen() {
     const [username, setUsername] = useState('');
     const [email, setEmail] = useState('');
+    const [photoUri, setPhotoUri] = useState<string | null>(null);
     const [height, setHeight] = useState('');
     const [weight, setWeight] = useState('');
     const [sex, setSex] = useState('');
@@ -23,6 +26,7 @@ export default function ProfileScreen() {
     const [activityLevel, setActivityLevel] = useState('');
     const [objective, setObjective] = useState('');
     const navigation = useNavigation();
+    const { setUser } = useContext(UserContext);
 
     // Calculate age based on DOB
     const calculateAge = (dob: Date) => {
@@ -55,18 +59,14 @@ export default function ProfileScreen() {
         { label: 'Weight Gain', value: 'gain' }
     ]
 
+
     useEffect(() => {
         const fetchUserProfile = async () => {
             const storedUsername = await AsyncStorage.getItem('loggedInUsername');
-
             if (!storedUsername) {
-                console.log('No logged-in user found.');
                 Alert.alert('Error', 'No logged-in user. Please log in again.');
                 return;
             }
-
-            console.log('Fetching profile for username:', storedUsername);
-
             db.transaction((tx) => {
                 tx.executeSql(
                     'SELECT * FROM users WHERE username = ?;',
@@ -76,14 +76,166 @@ export default function ProfileScreen() {
                             const row = results.rows.item(0);
                             setUsername(row.username);
                             setEmail(row.email);
+                            setPhotoUri(row.photoUri);
                             setHeight(row.height ? row.height.toString() : '');
                             setWeight(row.weight ? row.weight.toString() : '');
                             setSex(row.sex || '');
                             setDob(row.dob ? new Date(row.dob) : new Date());
                             setActivityLevel(row.activityLevel ? row.activityLevel.toString() : '');
                             setObjective(row.objective || '');
-                        } else {
-                            console.log('No user found in the database.');
+                            // Update global user context so Header can see the new photo
+                            setUser({
+                                username: row.username,
+                                photoUri: row.photoUri,
+                            });
+                        }
+                    },
+                    (error) => console.log('Error fetching user data:', error)
+                );
+            });
+        };
+
+        fetchUserProfile();
+    }, []);
+    useEffect(() => {
+        const fetchUserProfile = async () => {
+            const storedUsername = await AsyncStorage.getItem('loggedInUsername');
+            if (!storedUsername) {
+                Alert.alert('Error', 'No logged-in user. Please log in again.');
+                return;
+            }
+            db.transaction((tx) => {
+                tx.executeSql(
+                    'SELECT * FROM users WHERE username = ?;',
+                    [storedUsername],
+                    (tx, results) => {
+                        if (results.rows.length > 0) {
+                            const row = results.rows.item(0);
+                            setUsername(row.username);
+                            setEmail(row.email);
+                            setPhotoUri(row.photoUri);
+                            setHeight(row.height ? row.height.toString() : '');
+                            setWeight(row.weight ? row.weight.toString() : '');
+                            setSex(row.sex || '');
+                            setDob(row.dob ? new Date(row.dob) : new Date());
+                            setActivityLevel(row.activityLevel ? row.activityLevel.toString() : '');
+                            setObjective(row.objective || '');
+                            // Update global user context so Header can see the new photo
+                            setUser({
+                                username: row.username,
+                                photoUri: row.photoUri,
+                            });
+                        }
+                    },
+                    (error) => console.log('Error fetching user data:', error)
+                );
+            });
+        };
+
+        fetchUserProfile();
+    }, []);
+    useEffect(() => {
+        const fetchUserProfile = async () => {
+            const storedUsername = await AsyncStorage.getItem('loggedInUsername');
+            if (!storedUsername) {
+                Alert.alert('Error', 'No logged-in user. Please log in again.');
+                return;
+            }
+            db.transaction((tx) => {
+                tx.executeSql(
+                    'SELECT * FROM users WHERE username = ?;',
+                    [storedUsername],
+                    (tx, results) => {
+                        if (results.rows.length > 0) {
+                            const row = results.rows.item(0);
+                            setUsername(row.username);
+                            setEmail(row.email);
+                            setPhotoUri(row.photoUri);
+                            setHeight(row.height ? row.height.toString() : '');
+                            setWeight(row.weight ? row.weight.toString() : '');
+                            setSex(row.sex || '');
+                            setDob(row.dob ? new Date(row.dob) : new Date());
+                            setActivityLevel(row.activityLevel ? row.activityLevel.toString() : '');
+                            setObjective(row.objective || '');
+                            // Update global user context so Header can see the new photo
+                            setUser({
+                                username: row.username,
+                                photoUri: row.photoUri,
+                            });
+                        }
+                    },
+                    (error) => console.log('Error fetching user data:', error)
+                );
+            });
+        };
+
+        fetchUserProfile();
+    }, []);
+    useEffect(() => {
+        const fetchUserProfile = async () => {
+            const storedUsername = await AsyncStorage.getItem('loggedInUsername');
+            if (!storedUsername) {
+                Alert.alert('Error', 'No logged-in user. Please log in again.');
+                return;
+            }
+            db.transaction((tx) => {
+                tx.executeSql(
+                    'SELECT * FROM users WHERE username = ?;',
+                    [storedUsername],
+                    (tx, results) => {
+                        if (results.rows.length > 0) {
+                            const row = results.rows.item(0);
+                            setUsername(row.username);
+                            setEmail(row.email);
+                            setPhotoUri(row.photoUri);
+                            setHeight(row.height ? row.height.toString() : '');
+                            setWeight(row.weight ? row.weight.toString() : '');
+                            setSex(row.sex || '');
+                            setDob(row.dob ? new Date(row.dob) : new Date());
+                            setActivityLevel(row.activityLevel ? row.activityLevel.toString() : '');
+                            setObjective(row.objective || '');
+                            // Update global user context so Header can see the new photo
+                            setUser({
+                                username: row.username,
+                                photoUri: row.photoUri,
+                            });
+                        }
+                    },
+                    (error) => console.log('Error fetching user data:', error)
+                );
+            });
+        };
+
+        fetchUserProfile();
+    }, []);
+    useEffect(() => {
+        const fetchUserProfile = async () => {
+            const storedUsername = await AsyncStorage.getItem('loggedInUsername');
+            if (!storedUsername) {
+                Alert.alert('Error', 'No logged-in user. Please log in again.');
+                return;
+            }
+            db.transaction((tx) => {
+                tx.executeSql(
+                    'SELECT * FROM users WHERE username = ?;',
+                    [storedUsername],
+                    (tx, results) => {
+                        if (results.rows.length > 0) {
+                            const row = results.rows.item(0);
+                            setUsername(row.username);
+                            setEmail(row.email);
+                            setPhotoUri(row.photoUri);
+                            setHeight(row.height ? row.height.toString() : '');
+                            setWeight(row.weight ? row.weight.toString() : '');
+                            setSex(row.sex || '');
+                            setDob(row.dob ? new Date(row.dob) : new Date());
+                            setActivityLevel(row.activityLevel ? row.activityLevel.toString() : '');
+                            setObjective(row.objective || '');
+                            // Update global user context so Header can see the new photo
+                            setUser({
+                                username: row.username,
+                                photoUri: row.photoUri,
+                            });
                         }
                     },
                     (error) => console.log('Error fetching user data:', error)
@@ -139,6 +291,25 @@ export default function ProfileScreen() {
         };
     };
 
+    const handleChoosePhoto = () => {
+        const options: ImageLibraryOptions = {
+            mediaType: 'photo',
+            quality: 0.8,
+        };
+        launchImageLibrary(options, (response) => {
+            if (response.didCancel) {
+                console.log('User cancelled image picker');
+            } else if (response.errorMessage) {
+                console.log('ImagePicker Error: ', response.errorMessage);
+            } else {
+                if (response.assets && response.assets.length > 0) {
+                    const asset = response.assets[0];
+                    setPhotoUri(asset.uri || null);
+                }
+            }
+        });
+    };
+
     // Function to update user profile
     const updateProfile = async () => {
         const storedUsername = await AsyncStorage.getItem('loggedInUsername');
@@ -148,7 +319,7 @@ export default function ProfileScreen() {
             return;
         }
 
-        if (!height || !weight || !sex || !dob || !activityLevel || !objective) {
+        if (!height || !weight || !sex || !dob || !activityLevel || !objective || !photoUri) {
             Alert.alert('Error', 'All fields must be filled in before saving.');
             return;
         }
@@ -163,14 +334,15 @@ export default function ProfileScreen() {
         db.transaction(tx => {
             tx.executeSql(
                 `UPDATE users
-                        SET height = ?, weight = ?, sex = ?, dob = ?, age = ?, activityLevel = ?, objective = ?, calories = ?, protein = ?, carbs = ?, fats = ?
+                        SET height = ?, weight = ?, sex = ?, dob = ?, age = ?, activityLevel = ?, objective = ?, calories = ?, protein = ?, carbs = ?, fats = ?, photoUri = ?
                         WHERE username = ?;`,
-                [height, weight, sex, dob.toISOString().split('T')[0], age, activityLevel, objective, macros.totalCalories, macros.protein, macros.carbs, macros.fat, username],
+                [height, weight, sex, dob.toISOString().split('T')[0], age, activityLevel, objective, macros.totalCalories, macros.protein, macros.carbs, macros.fat, photoUri, username],
                 async (_, result) => {
                     console.log('Rows affected:', result.rowsAffected);
                     if (result.rowsAffected > 0) {
                         Alert.alert('Success', 'Profile updated successfully');
                         // Now send the updated data to PostgreSQL
+                        setUser({ username, photoUri });
                         try {
                             const response = await fetch('http://10.0.2.2:3000/updateProfile', {
                                 method: 'POST',
@@ -190,9 +362,9 @@ export default function ProfileScreen() {
                                     protein: macros.protein,
                                     carbs: macros.carbs,
                                     fats: macros.fat,
+                                    photoUri,
                                 }),
                             });
-
                             const data = await response.json();
                             console.log('Response from server:', data);
                             if (response.ok) {
@@ -224,6 +396,17 @@ export default function ProfileScreen() {
     return (
         <View style={styles.container}>
             <Text style={styles.header}>Profile</Text>
+
+            <View style={styles.row}>
+                <Text style={styles.label}>Photo:</Text>
+                <TouchableOpacity style={styles.photoContainer} onPress={handleChoosePhoto}>
+                    {photoUri ? (
+                        <Image source={{ uri: photoUri }} style={styles.photo} />
+                    ) : (
+                        <Text style={styles.photoPlaceholder}>Add Photo</Text>
+                    )}
+                </TouchableOpacity>
+            </View>
 
             <View style={styles.row}>
                 <Text style={styles.label}>Username:</Text>
@@ -328,5 +511,26 @@ const styles = StyleSheet.create({
     savebutton: { width: '50%', alignSelf: 'center', backgroundColor: '#007BFF', padding: 10, borderRadius: 5, alignItems: 'center', marginTop: 50 },
     buttonText: { color: 'white', fontWeight: 'bold' },
     logoutButton: { width: '50%', alignSelf: 'center', backgroundColor: '#FF3B30', padding: 10, borderRadius: 5, alignItems: 'center', marginTop: 15 },
+    photoContainer: {
+        width: 50,
+        height: 50,
+        borderWidth: 1,
+        borderColor: '#ccc',
+        borderRadius: 25,
+        overflow: 'hidden',
+        justifyContent: 'center',
+        alignItems: 'center',
+        marginRight: 15,
+        marginBottom: 10
+    },
+    photo: {
+        width: 50,
+        height: 50,
+    },
+    photoPlaceholder: {
+        fontSize: 12,
+        color: '#aaa',
+        textAlign: 'center',
+    },
 });
 
