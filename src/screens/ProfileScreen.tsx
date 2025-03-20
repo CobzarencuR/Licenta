@@ -394,109 +394,111 @@ export default function ProfileScreen() {
     };
 
     return (
-        <View style={styles.container}>
-            <Text style={styles.header}>Profile</Text>
+        <ScrollView>
+            <View style={styles.container}>
+                <Text style={styles.header}>Profile</Text>
 
-            <View style={styles.row}>
-                <Text style={styles.label}>Photo:</Text>
-                <TouchableOpacity style={styles.photoContainer} onPress={handleChoosePhoto}>
-                    {photoUri ? (
-                        <Image source={{ uri: photoUri }} style={styles.photo} />
-                    ) : (
-                        <Text style={styles.photoPlaceholder}>Add Photo</Text>
-                    )}
-                </TouchableOpacity>
-            </View>
-
-            <View style={styles.row}>
-                <Text style={styles.label}>Username:</Text>
-                <Text style={styles.value}>{username}</Text>
-            </View>
-
-            <View style={styles.row}>
-                <Text style={styles.label}>Email:</Text>
-                <Text style={styles.value}>{email}</Text>
-            </View>
-
-            <View style={styles.row}>
-                <Text style={styles.label}>Height (cm):</Text>
-                <View style={styles.value}>
-                    <TextInput placeholder="Insert height" value={height} onChangeText={(text) => setHeight(text.replace(',', '.'))} keyboardType="numeric" />
+                <View style={styles.row}>
+                    <Text style={styles.label}>Photo:</Text>
+                    <TouchableOpacity style={styles.photoContainer} onPress={handleChoosePhoto}>
+                        {photoUri ? (
+                            <Image source={{ uri: photoUri }} style={styles.photo} />
+                        ) : (
+                            <Text style={styles.photoPlaceholder}>Add Photo</Text>
+                        )}
+                    </TouchableOpacity>
                 </View>
-            </View>
 
-            <View style={styles.row}>
-                <Text style={styles.label}>Weight (kg):</Text>
-                <View style={styles.value}>
-                    <TextInput placeholder="Insert weight" value={weight} onChangeText={(text) => setWeight(text.replace(',', '.'))} keyboardType="numeric" />
+                <View style={styles.row}>
+                    <Text style={styles.label}>Username:</Text>
+                    <Text style={styles.value}>{username}</Text>
                 </View>
-            </View>
 
-            <View style={styles.row}>
-                <Text style={styles.label}>Sex:</Text>
-                <Dropdown
-                    style={styles.dropdown}
-                    data={sexOptions}
-                    labelField="label"
-                    valueField="value"
-                    placeholder="Select sex"
-                    value={sex}
-                    onChange={item => setSex(item.value)}
-                />
-            </View>
+                <View style={styles.row}>
+                    <Text style={styles.label}>Email:</Text>
+                    <Text style={styles.value}>{email}</Text>
+                </View>
 
-            <View style={styles.row}>
-                <Text style={styles.label}>Date of Birth:</Text>
-                <TouchableOpacity style={styles.dropdown} onPress={() => setShowDatePicker(true)}>
-                    <Text>{dob.toDateString()}</Text>
-                </TouchableOpacity>
-                {showDatePicker && (
-                    <DateTimePicker
-                        value={dob}
-                        mode="date"
-                        display="default"
-                        onChange={(event, selectedDate) => {
-                            setShowDatePicker(false);
-                            if (selectedDate) setDob(selectedDate);
-                        }}
+                <View style={styles.row}>
+                    <Text style={styles.label}>Height (cm):</Text>
+                    <View style={styles.value}>
+                        <TextInput placeholder="Insert height" value={height} onChangeText={(text) => setHeight(text.replace(',', '.'))} keyboardType="numeric" />
+                    </View>
+                </View>
+
+                <View style={styles.row}>
+                    <Text style={styles.label}>Weight (kg):</Text>
+                    <View style={styles.value}>
+                        <TextInput placeholder="Insert weight" value={weight} onChangeText={(text) => setWeight(text.replace(',', '.'))} keyboardType="numeric" />
+                    </View>
+                </View>
+
+                <View style={styles.row}>
+                    <Text style={styles.label}>Sex:</Text>
+                    <Dropdown
+                        style={styles.dropdown}
+                        data={sexOptions}
+                        labelField="label"
+                        valueField="value"
+                        placeholder="Select sex"
+                        value={sex}
+                        onChange={item => setSex(item.value)}
                     />
-                )}
-            </View>
+                </View>
 
-            <View style={styles.row}>
-                <Text style={styles.label}>Activity Level:</Text>
-                <Dropdown
-                    style={styles.dropdown}
-                    data={ActivityLevelOptions}
-                    labelField="label"
-                    valueField="value"
-                    placeholder="Select level"
-                    value={activityLevel}
-                    onChange={item => setActivityLevel(item.value)}
-                />
-            </View>
+                <View style={styles.row}>
+                    <Text style={styles.label}>Date of Birth:</Text>
+                    <TouchableOpacity style={styles.dropdown} onPress={() => setShowDatePicker(true)}>
+                        <Text>{dob.toDateString()}</Text>
+                    </TouchableOpacity>
+                    {showDatePicker && (
+                        <DateTimePicker
+                            value={dob}
+                            mode="date"
+                            display="default"
+                            onChange={(event, selectedDate) => {
+                                setShowDatePicker(false);
+                                if (selectedDate) setDob(selectedDate);
+                            }}
+                        />
+                    )}
+                </View>
 
-            <View style={styles.row}>
-                <Text style={styles.label}>Objective:</Text>
-                <Dropdown
-                    style={styles.dropdown}
-                    data={ObjectiveOptions}
-                    labelField="label"
-                    valueField="value"
-                    placeholder="Select objective"
-                    value={objective}
-                    onChange={item => setObjective(item.value)}
-                />
-            </View>
+                <View style={styles.row}>
+                    <Text style={styles.label}>Activity Level:</Text>
+                    <Dropdown
+                        style={styles.dropdown}
+                        data={ActivityLevelOptions}
+                        labelField="label"
+                        valueField="value"
+                        placeholder="Select level"
+                        value={activityLevel}
+                        onChange={item => setActivityLevel(item.value)}
+                    />
+                </View>
 
-            <TouchableOpacity style={styles.savebutton} onPress={updateProfile}>
-                <Text style={styles.buttonText}>Save Profile</Text>
-            </TouchableOpacity>
+                <View style={styles.row}>
+                    <Text style={styles.label}>Objective:</Text>
+                    <Dropdown
+                        style={styles.dropdown}
+                        data={ObjectiveOptions}
+                        labelField="label"
+                        valueField="value"
+                        placeholder="Select objective"
+                        value={objective}
+                        onChange={item => setObjective(item.value)}
+                    />
+                </View>
 
-            <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
-                <Text style={styles.buttonText}>Logout</Text>
-            </TouchableOpacity>
-        </View >
+                <TouchableOpacity style={styles.savebutton} onPress={updateProfile}>
+                    <Text style={styles.buttonText}>Save Profile</Text>
+                </TouchableOpacity>
+
+                <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
+                    <Text style={styles.buttonText}>Logout</Text>
+                </TouchableOpacity>
+            </View >
+        </ScrollView>
     );
 }
 

@@ -1,11 +1,12 @@
-import React, { useContext, useEffect, useState } from 'react';
+import React, { useContext, useState, useEffect } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, ScrollView, Alert, Modal } from 'react-native';
-import { MealContext } from '../context/MealContext';
+import { MealContext, Meal } from '../context/MealContext';
 import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../navigation/AppNavigator';
 import SQLite from 'react-native-sqlite-storage';
 import UserRemainingMacros from '../components/UserRemainingMacros';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 type MealScreenNavigationProp = NativeStackNavigationProp<RootStackParamList, 'MealCategory'>;
 
@@ -16,14 +17,29 @@ const db = SQLite.openDatabase(
 );
 
 const MealScreen = () => {
-    const [user, setUser] = useState<any>(null);
     const { meals, addMeal, deleteMeal, removeFoodFromMeal, moveFoodToMeal } = useContext(MealContext);
     const navigation = useNavigation<MealScreenNavigationProp>();
-    // State to manage modals and selection
     const [optionModalVisible, setOptionModalVisible] = useState(false);
     const [moveModalVisible, setMoveModalVisible] = useState(false);
     const [selectedFood, setSelectedFood] = useState<any>(null);
     const [selectedMealId, setSelectedMealId] = useState<number | null>(null);
+    const [currentUserId, setCurrentUserId] = useState<number | null>(null);
+
+    // Fetch current user id from AsyncStorage
+    useEffect(() => {
+        const fetchUserId = async () => {
+            const storedUserId = await AsyncStorage.getItem('loggedInUserId');
+            if (storedUserId) {
+                setCurrentUserId(parseInt(storedUserId, 10));
+            }
+        };
+        fetchUserId();
+    }, []);
+
+    // Filter meals to only show those for the current user.
+    const userMeals = currentUserId
+        ? meals.filter((meal) => meal.userId === currentUserId)
+        : [];
 
     const handleDeleteMeal = (mealId: number) => {
         Alert.alert(
@@ -44,7 +60,7 @@ const MealScreen = () => {
     };
 
     // Get list of destination meals (exclude the current one)
-    const destinationMeals = meals.filter(
+    const destinationMeals = userMeals.filter(
         (meal) => meal.id !== selectedMealId
     );
 
@@ -62,18 +78,25 @@ const MealScreen = () => {
         );
     };
 
+    // Handler for adding a new meal
+    const handleAddMeal = () => {
+        if (currentUserId) {
+            addMeal(currentUserId);
+        } else {
+            Alert.alert('Error', 'User id not found');
+        }
+    };
+
     return (
         <>
             <ScrollView contentContainerStyle={styles.container}>
-
                 <UserRemainingMacros />
 
-                <TouchableOpacity style={styles.addMealButton} onPress={addMeal}>
+                <TouchableOpacity style={styles.addMealButton} onPress={handleAddMeal}>
                     <Text style={styles.addMealText}>AddMeal</Text>
                 </TouchableOpacity>
 
-                {meals.map((meal) => {
-                    // Compute totals for this meal.
+                {userMeals.map((meal) => {
                     const totals = computeMealTotals(meal.foods);
                     return (
                         <View key={meal.id} style={styles.mealBox}>
@@ -98,11 +121,9 @@ const MealScreen = () => {
                                     <TouchableOpacity
                                         key={food.id}
                                         style={styles.foodItem}
-                                        // Short press to edit.
                                         onPress={() =>
                                             navigation.navigate('FoodDetail', { mealId: meal.id, food })
                                         }
-                                        // Long press to show options.
                                         onLongPress={() => handleFoodLongPress(meal.id, food)}
                                     >
                                         <Text style={styles.foodName}>{food.foodname}</Text>
@@ -118,7 +139,6 @@ const MealScreen = () => {
                             <TouchableOpacity
                                 style={styles.addFoodButton}
                                 onPress={() =>
-                                    // Navigate to MealCategory and pass the mealId for adding new food.
                                     navigation.navigate('MealCategory', { mealId: meal.id })
                                 }
                             >
@@ -129,7 +149,6 @@ const MealScreen = () => {
                 })}
             </ScrollView>
 
-            {/* Option Modal: Cancel, Delete, Move */}
             <Modal
                 visible={optionModalVisible}
                 transparent
@@ -168,7 +187,6 @@ const MealScreen = () => {
                 </View>
             </Modal>
 
-            {/* Move Modal: List of destination meals */}
             <Modal
                 visible={moveModalVisible}
                 transparent
@@ -206,16 +224,6 @@ const MealScreen = () => {
 
 const styles = StyleSheet.create({
     container: { padding: 16 },
-    title: {
-        fontSize: 18,
-        fontWeight: 'bold',
-        marginBottom: 8,
-        textAlign: 'center',
-    },
-    text: {
-        fontSize: 16,
-        textAlign: 'center',
-    },
     addMealButton: {
         backgroundColor: '#007BFF',
         padding: 10,
@@ -223,50 +231,22 @@ const styles = StyleSheet.create({
         marginBottom: 16,
         alignItems: 'center',
     },
-    addMealText: {
-        color: '#FFF',
-        fontWeight: 'bold',
-    },
+    addMealText: { color: '#FFF', fontWeight: 'bold' },
     mealBox: {
         borderWidth: 1,
         borderColor: '#ccc',
         borderRadius: 5,
         padding: 10,
         marginBottom: 16,
-    },
-    mealTitle: {
-        fontSize: 18,
-        fontWeight: 'bold',
-        marginBottom: 8,
-    },
-    noFoodsText: {
-        fontStyle: 'italic',
-        marginBottom: 8,
-    },
-    addFoodButton: {
-        backgroundColor: '#28a745',
-        padding: 8,
-        borderRadius: 5,
-        alignItems: 'center',
-        marginTop: 8,
-    },
-    addFoodText: {
-        color: '#FFF',
-    },
-    foodItem: {
-        marginBottom: 8,
-    },
-    foodName: {
-        fontSize: 16,
-        fontWeight: '600',
-    },
-    foodDetails: {
-        fontSize: 14,
+        position: 'relative',
     },
     mealHeader: {
-        // Relative container for absolute positioning the delete button
         paddingRight: 30,
+        flexDirection: 'row',
+        justifyContent: 'space-between',
     },
+    mealTitle: { fontSize: 18, fontWeight: 'bold' },
+    mealTotals: { fontSize: 14, color: '#555' },
     deleteMealButton: {
         position: 'absolute',
         top: 0,
@@ -278,11 +258,19 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         justifyContent: 'center',
     },
-    deleteMealText: {
-        color: '#FFF',
-        fontWeight: 'bold',
+    deleteMealText: { color: '#FFF', fontWeight: 'bold' },
+    noFoodsText: { fontStyle: 'italic', marginVertical: 8 },
+    addFoodButton: {
+        backgroundColor: '#28a745',
+        padding: 8,
+        borderRadius: 5,
+        alignItems: 'center',
+        marginTop: 8,
     },
-    // Modal styles
+    addFoodText: { color: '#FFF' },
+    foodItem: { marginBottom: 8 },
+    foodName: { fontSize: 16, fontWeight: '600' },
+    foodDetails: { fontSize: 14 },
     modalOverlay: {
         flex: 1,
         backgroundColor: 'rgba(0,0,0,0.5)',
@@ -301,7 +289,6 @@ const styles = StyleSheet.create({
         fontSize: 18,
         textAlign: 'center',
     },
-    mealTotals: { fontSize: 14, color: '#555' },
 });
 
 export default MealScreen;

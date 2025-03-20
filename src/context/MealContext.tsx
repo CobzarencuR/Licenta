@@ -4,6 +4,7 @@ export type Food = {
     id: number;
     foodname: string;
     grams: number;
+    category: string;
     calories: number;
     protein: number;
     carbs: number;
@@ -12,13 +13,14 @@ export type Food = {
 
 export type Meal = {
     id: number;
+    userId: number;
     title: string;
     foods: Food[];
 };
 
 type MealContextType = {
     meals: Meal[];
-    addMeal: () => void;
+    addMeal: (userId: number) => void;
     addFoodToMeal: (mealId: number, food: Food) => void;
     updateFoodInMeal: (mealId: number, updatedFood: Food) => void;
     deleteMeal: (mealId: number) => void;
@@ -33,7 +35,7 @@ export const MealContext = createContext<MealContextType>({
     updateFoodInMeal: () => { },
     deleteMeal: () => { },
     removeFoodFromMeal: () => { },
-    moveFoodToMeal: () => { }
+    moveFoodToMeal: () => { },
 });
 
 type Props = {
@@ -43,12 +45,12 @@ type Props = {
 export const MealProvider = ({ children }: Props) => {
     const [meals, setMeals] = useState<Meal[]>([]);
 
-    // Add a new meal with a unique id and a sequential title based on current count.
-    const addMeal = () => {
+    const addMeal = (userId: number) => {
         setMeals((prevMeals) => {
             const newMeal: Meal = {
-                id: Date.now(), // Unique id based on timestamp
-                title: `Meal ${prevMeals.length + 1}`,
+                id: Date.now(),
+                userId,
+                title: `Meal ${prevMeals.filter(m => m.userId === userId).length + 1}`,
                 foods: [],
             };
             return [...prevMeals, newMeal];
@@ -79,11 +81,9 @@ export const MealProvider = ({ children }: Props) => {
         );
     };
 
-    // Delete a meal by its id and reassign titles to keep numbering sequential.
     const deleteMeal = (mealId: number) => {
         setMeals((prevMeals) => {
             const filteredMeals = prevMeals.filter((meal) => meal.id !== mealId);
-            // Reassign titles to be sequential.
             return filteredMeals.map((meal, index) => ({
                 ...meal,
                 title: `Meal ${index + 1}`,
@@ -91,7 +91,6 @@ export const MealProvider = ({ children }: Props) => {
         });
     };
 
-    // Remove a single food from a meal.
     const removeFoodFromMeal = (mealId: number, foodId: number) => {
         setMeals((prevMeals) =>
             prevMeals.map((meal) =>
@@ -103,7 +102,6 @@ export const MealProvider = ({ children }: Props) => {
         console.log(`Removed food ${foodId} from meal ${mealId}`);
     };
 
-    // Move a food from one meal to another.
     const moveFoodToMeal = (sourceMealId: number, destinationMealId: number, food: Food) => {
         setMeals((prevMeals) =>
             prevMeals.map((meal) => {
