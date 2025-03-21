@@ -47,11 +47,13 @@ export default function Header() {
 
     return (
         <View style={styles.header}>
-            {user && user.photoUri ? (
-                <Image source={{ uri: user.photoUri }} style={styles.photo} />
-            ) : (
-                <Text style={styles.placeholderText}>{user?.username}</Text>
-            )}
+            <View style={styles.photoContainer}>
+                {user && user.photoUri ? (
+                    <Image source={{ uri: user.photoUri }} style={styles.photo} />
+                ) : (
+                    <Text style={styles.photoPlaceholder}>Add Photo</Text>
+                )}
+            </View>
             <Text style={styles.headerText}>MyFitnessApp</Text>
             <SettingsButton />
         </View>
@@ -68,17 +70,27 @@ const styles = StyleSheet.create({
         justifyContent: 'space-between'
     },
     headerText: {
-        fontSize: 22,
+        fontSize: 26,
         fontWeight: 'bold',
         color: 'white'
     },
-    placeholderText: {
-        fontSize: 14,
-        color: 'white'
+    photoContainer: {
+        width: 40,
+        height: 40,
+        borderWidth: 1,
+        borderColor: '#ccc',
+        borderRadius: 25,
+        overflow: 'hidden',
+        justifyContent: 'center',
+        alignItems: 'center'
     },
     photo: {
         width: 40,
         height: 40,
-        borderRadius: 20
-    }
+    },
+    photoPlaceholder: {
+        fontSize: 10,
+        color: '#aaa',
+        textAlign: 'center',
+    },
 });
