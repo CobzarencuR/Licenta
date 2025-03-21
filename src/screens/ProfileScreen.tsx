@@ -166,11 +166,6 @@ export default function ProfileScreen() {
 
     // Function to update user profile
     const updateProfile = async () => {
-        if (initialDob && dob.getTime() === initialDob.getTime()) {
-            Alert.alert('Error', 'You must change your date of birth to update your profile.');
-            return;
-        }
-
         const storedUsername = await AsyncStorage.getItem('loggedInUsername');
 
         if (!storedUsername) {
@@ -180,6 +175,18 @@ export default function ProfileScreen() {
 
         if (!height || !weight || !sex || !dob || !activityLevel || !objective || !photoUri) {
             Alert.alert('Error', 'All fields must be filled in before saving.');
+            return;
+        }
+
+        // Create date objects for today and for the selected dob (set hours to 0 to compare dates only)
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        const selectedDob = new Date(dob);
+        selectedDob.setHours(0, 0, 0, 0);
+
+        //Date of birth must be at least one day before today's date.
+        if (selectedDob >= today) {
+            Alert.alert('Error', "You must change your date of birth to update your profile.");
             return;
         }
 
