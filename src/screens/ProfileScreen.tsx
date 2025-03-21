@@ -22,6 +22,7 @@ export default function ProfileScreen() {
     const [weight, setWeight] = useState('');
     const [sex, setSex] = useState('');
     const [dob, setDob] = useState(new Date());
+    const [initialDob, setInitialDob] = useState<Date | null>(null);
     const [showDatePicker, setShowDatePicker] = useState(false);
     const [activityLevel, setActivityLevel] = useState('');
     const [objective, setObjective] = useState('');
@@ -81,6 +82,7 @@ export default function ProfileScreen() {
                             setWeight(row.weight ? row.weight.toString() : '');
                             setSex(row.sex || '');
                             setDob(row.dob ? new Date(row.dob) : new Date());
+                            setInitialDob(row.dob ? new Date(row.dob) : new Date());
                             setActivityLevel(row.activityLevel ? row.activityLevel.toString() : '');
                             setObjective(row.objective || '');
                             // Update global user context so Header can see the new photo
@@ -164,6 +166,11 @@ export default function ProfileScreen() {
 
     // Function to update user profile
     const updateProfile = async () => {
+        if (initialDob && dob.getTime() === initialDob.getTime()) {
+            Alert.alert('Error', 'You must change your date of birth to update your profile.');
+            return;
+        }
+
         const storedUsername = await AsyncStorage.getItem('loggedInUsername');
 
         if (!storedUsername) {
