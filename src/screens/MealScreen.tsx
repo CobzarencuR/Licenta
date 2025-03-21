@@ -1,31 +1,28 @@
 import React, { useContext, useState, useEffect } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, ScrollView, Alert, Modal } from 'react-native';
 import { MealContext, Meal } from '../context/MealContext';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../navigation/AppNavigator';
-import SQLite from 'react-native-sqlite-storage';
-import UserRemainingMacros from '../components/UserRemainingMacros';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import UserRemainingMacros from '../components/UserRemainingMacros';
+import DateTimePicker from '@react-native-community/datetimepicker';
 
 type MealScreenNavigationProp = NativeStackNavigationProp<RootStackParamList, 'MealCategory'>;
 
-const db = SQLite.openDatabase(
-    { name: 'fitnessApp.db', location: 'default' },
-    () => console.log('Database opened successfully'),
-    (error) => console.log('Error opening database:', error)
-);
-
 const MealScreen = () => {
-    const { meals, addMeal, deleteMeal, removeFoodFromMeal, moveFoodToMeal } = useContext(MealContext);
+    const { meals, loadMeals, addMeal, deleteMeal, removeFoodFromMeal, moveFoodToMeal } = useContext(MealContext);
     const navigation = useNavigation<MealScreenNavigationProp>();
+    const [selectedDate, setSelectedDate] = useState(new Date());
+    const [showDatePicker, setShowDatePicker] = useState(false);
     const [optionModalVisible, setOptionModalVisible] = useState(false);
     const [moveModalVisible, setMoveModalVisible] = useState(false);
     const [selectedFood, setSelectedFood] = useState<any>(null);
     const [selectedMealId, setSelectedMealId] = useState<number | null>(null);
     const [currentUserId, setCurrentUserId] = useState<number | null>(null);
 
-    // Fetch current user id from AsyncStorage
+    const formattedDate = selectedDate.toISOString().split('T')[0];
+
     useEffect(() => {
         const fetchUserId = async () => {
             const storedUserId = await AsyncStorage.getItem('loggedInUserId');
@@ -36,7 +33,14 @@ const MealScreen = () => {
         fetchUserId();
     }, []);
 
-    // Filter meals to only show those for the current user.
+    // Reload meals when the screen gains focus or when selectedDate changes.
+    useFocusEffect(
+        React.useCallback(() => {
+            loadMeals(formattedDate);
+        }, [formattedDate])
+    );
+
+    // Filter meals for current user (should already be filtered in loadMeals)
     const userMeals = currentUserId
         ? meals.filter((meal) => meal.userId === currentUserId)
         : [];
@@ -52,19 +56,14 @@ const MealScreen = () => {
         );
     };
 
-    // Called when a food is long pressed.
     const handleFoodLongPress = (mealId: number, food: any) => {
         setSelectedMealId(mealId);
         setSelectedFood(food);
         setOptionModalVisible(true);
     };
 
-    // Get list of destination meals (exclude the current one)
-    const destinationMeals = userMeals.filter(
-        (meal) => meal.id !== selectedMealId
-    );
+    const destinationMeals = userMeals.filter((meal) => meal.id !== selectedMealId);
 
-    // Helper to compute totals for a meal.
     const computeMealTotals = (foods: any[]) => {
         return foods.reduce(
             (totals, food) => {
@@ -78,10 +77,9 @@ const MealScreen = () => {
         );
     };
 
-    // Handler for adding a new meal
     const handleAddMeal = () => {
         if (currentUserId) {
-            addMeal(currentUserId);
+            addMeal(currentUserId, formattedDate);
         } else {
             Alert.alert('Error', 'User id not found');
         }
@@ -90,10 +88,29 @@ const MealScreen = () => {
     return (
         <>
             <ScrollView contentContainerStyle={styles.container}>
+
+                <View style={styles.datePickerRow}>
+                    <Text style={styles.dateLabel}>Selected Date:</Text>
+                    <TouchableOpacity onPress={() => setShowDatePicker(true)}>
+                        <Text style={styles.dateText}>{formattedDate}</Text>
+                    </TouchableOpacity>
+                </View>
+                {showDatePicker && (
+                    <DateTimePicker
+                        value={selectedDate}
+                        mode="date"
+                        display="default"
+                        onChange={(event, date) => {
+                            setShowDatePicker(false);
+                            if (date) setSelectedDate(date);
+                        }}
+                    />
+                )}
+
                 <UserRemainingMacros />
 
                 <TouchableOpacity style={styles.addMealButton} onPress={handleAddMeal}>
-                    <Text style={styles.addMealText}>AddMeal</Text>
+                    <Text style={styles.addMealText}>Add Meal</Text>
                 </TouchableOpacity>
 
                 {userMeals.map((meal) => {
@@ -102,7 +119,7 @@ const MealScreen = () => {
                         <View key={meal.id} style={styles.mealBox}>
                             <View style={styles.mealHeader}>
                                 <Text style={styles.mealTitle}>
-                                    {meal.title} {'\n'}
+                                    {meal.title}{'\n'}
                                     <Text style={styles.mealTotals}>
                                         {totals.calories} kcal | P: {totals.protein.toFixed(1)}g C: {totals.carbs.toFixed(1)}g F: {totals.fats.toFixed(1)}g
                                     </Text>
@@ -142,7 +159,7 @@ const MealScreen = () => {
                                     navigation.navigate('MealCategory', { mealId: meal.id })
                                 }
                             >
-                                <Text style={styles.addFoodText}>AddFood</Text>
+                                <Text style={styles.addFoodText}>Add Food</Text>
                             </TouchableOpacity>
                         </View>
                     );
@@ -224,6 +241,13 @@ const MealScreen = () => {
 
 const styles = StyleSheet.create({
     container: { padding: 16 },
+    datePickerRow: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        marginBottom: 16,
+    },
+    dateLabel: { fontSize: 18, marginRight: 8 },
+    dateText: { fontSize: 18, color: '#007AFF' },
     addMealButton: {
         backgroundColor: '#007BFF',
         padding: 10,
@@ -276,19 +300,13 @@ const styles = StyleSheet.create({
         backgroundColor: 'rgba(0,0,0,0.5)',
         justifyContent: 'flex-end',
     },
-    modalContainer: {
-        backgroundColor: '#fff',
-        padding: 16,
-    },
+    modalContainer: { backgroundColor: '#fff', padding: 16 },
     modalOption: {
         paddingVertical: 12,
         borderBottomWidth: 1,
         borderColor: '#ccc',
     },
-    modalOptionText: {
-        fontSize: 18,
-        textAlign: 'center',
-    },
+    modalOptionText: { fontSize: 18, textAlign: 'center' },
 });
 
 export default MealScreen;

@@ -3,8 +3,8 @@ import SQLite from 'react-native-sqlite-storage';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 export type Food = {
-    category: string;
     id: number;
+    category: string;
     foodname: string;
     grams: number;
     calories: number;
@@ -17,13 +17,14 @@ export type Meal = {
     id: number;
     userId: number;
     title: string;
+    date: string;
     foods: Food[];
 };
 
 type MealContextType = {
     meals: Meal[];
-    loadMeals: () => void;
-    addMeal: (userId: number) => void;
+    loadMeals: (selectedDate?: string) => void;
+    addMeal: (userId: number, date?: string) => void;
     addFoodToMeal: (mealId: number, food: Food) => void;
     updateFoodInMeal: (mealId: number, updatedFood: Food) => void;
     deleteMeal: (mealId: number) => void;
@@ -49,9 +50,9 @@ type Props = {
 const db = SQLite.openDatabase(
     { name: 'fitnessApp.db', location: 'default' },
     () => {
-        console.log('MealProvider: Database opened successfully'),
-            // Enable foreign key constraints
-            db.executeSql('PRAGMA foreign_keys = ON;');
+        console.log('MealProvider: Database opened successfully');
+        // Enable foreign keys (if using cascade deletes)
+        db.executeSql('PRAGMA foreign_keys = ON;');
     },
     (error) => console.log('MealProvider: Error opening database:', error)
 );
@@ -59,18 +60,19 @@ const db = SQLite.openDatabase(
 export const MealProvider = ({ children }: Props) => {
     const [meals, setMeals] = useState<Meal[]>([]);
 
-    // Load meals from SQLite for the currently logged-in user.
-    const loadMeals = async () => {
+    // loadMeals: Load meals for the current user and for the given date.
+    const loadMeals = async (selectedDate?: string) => {
         const storedUserId = await AsyncStorage.getItem('loggedInUserId');
         if (!storedUserId) {
             setMeals([]);
             return;
         }
         const userId = parseInt(storedUserId, 10);
+        const dateToLoad = selectedDate || new Date().toISOString().split('T')[0];
         db.transaction((tx) => {
             tx.executeSql(
-                'SELECT * FROM meals WHERE user_id = ?;',
-                [userId],
+                'SELECT * FROM meals WHERE user_id = ? AND date = ?;',
+                [userId, dateToLoad],
                 (tx, results) => {
                     const rows = results.rows;
                     let loadedMeals: Meal[] = [];
@@ -80,10 +82,11 @@ export const MealProvider = ({ children }: Props) => {
                             id: item.mealId,
                             userId: item.user_id,
                             title: item.name,
+                            date: item.date,
                             foods: [],
                         });
                     }
-
+                    // For each meal, load its foods.
                     loadedMeals.forEach((meal, index) => {
                         tx.executeSql(
                             'SELECT * FROM foods WHERE mealId = ?;',
@@ -104,7 +107,6 @@ export const MealProvider = ({ children }: Props) => {
                                     });
                                 }
                                 loadedMeals[index].foods = foods;
-                                // If last meal, update state.
                                 if (index === loadedMeals.length - 1) {
                                     setMeals(loadedMeals);
                                 }
@@ -123,25 +125,26 @@ export const MealProvider = ({ children }: Props) => {
         });
     };
 
-    // Load meals on provider mount.
     useEffect(() => {
-        loadMeals();
+        loadMeals(); // Load meals for today by default on mount.
     }, []);
 
-    // Add a new meal for the current user.
-    const addMeal = (userId: number) => {
-        const currentMealsForUser = meals.filter((meal) => meal.userId === userId);
+    const addMeal = (userId: number, date?: string) => {
+        const currentDate = date || new Date().toISOString().split('T')[0];
+        // Count meals for this user on the selected date.
+        const currentMealsForUser = meals.filter((meal) => meal.userId === userId && meal.date === currentDate);
         const newTitle = `Meal ${currentMealsForUser.length + 1}`;
         db.transaction((tx) => {
             tx.executeSql(
-                'INSERT INTO meals (user_id, name) VALUES (?, ?);',
-                [userId, newTitle],
+                'INSERT INTO meals (user_id, name, date) VALUES (?, ?, ?);',
+                [userId, newTitle, currentDate],
                 (tx, results) => {
                     const insertedId = results.insertId;
                     const newMeal: Meal = {
                         id: insertedId,
                         userId,
                         title: newTitle,
+                        date: currentDate,
                         foods: [],
                     };
                     setMeals((prevMeals) => [...prevMeals, newMeal]);
@@ -163,7 +166,7 @@ export const MealProvider = ({ children }: Props) => {
                     mealId,
                     food.foodname,
                     food.grams,
-                    food.category || '',
+                    food.category,
                     food.calories,
                     food.protein,
                     food.carbs,
@@ -232,31 +235,25 @@ export const MealProvider = ({ children }: Props) => {
                     AsyncStorage.getItem('loggedInUserId').then((storedUserId) => {
                         if (storedUserId) {
                             const userId = parseInt(storedUserId, 10);
-                            // Update state: filter meals by current user and remove the deleted meal.
                             setMeals((prevMeals) => {
-                                // Filter meals that belong to the current user (and are not deleted)
-                                const userMeals = prevMeals.filter(
-                                    (meal) => meal.userId === userId && meal.id !== mealId
-                                );
-                                // Reassign titles for userMeals.
+                                const filteredMeals = prevMeals.filter((meal) => meal.id !== mealId);
+                                // Reassign titles for meals belonging to this user for the selected date.
+                                const userMeals = filteredMeals.filter((meal) => meal.userId === userId);
                                 const updatedUserMeals = userMeals.map((meal, index) => ({
                                     ...meal,
                                     title: `Meal ${index + 1}`,
                                 }));
-                                // Now, update the database for each updated meal.
                                 updatedUserMeals.forEach((meal) => {
                                     db.transaction((tx2) => {
                                         tx2.executeSql(
                                             'UPDATE meals SET name = ? WHERE mealId = ?;',
                                             [meal.title, meal.id],
                                             () => console.log(`Updated meal ${meal.id} title to ${meal.title}`),
-                                            (tx2, error) =>
-                                                console.error(`Error updating meal ${meal.id} title:`, error)
+                                            (tx2, error) => console.error(`Error updating meal ${meal.id} title:`, error)
                                         );
                                     });
                                 });
-                                // Now, combine updated meals for the current user with meals from other users (if any).
-                                const otherMeals = prevMeals.filter((meal) => meal.userId !== userId);
+                                const otherMeals = filteredMeals.filter((meal) => meal.userId !== userId);
                                 return [...otherMeals, ...updatedUserMeals];
                             });
                         }
@@ -268,7 +265,6 @@ export const MealProvider = ({ children }: Props) => {
             );
         });
     };
-
 
     const removeFoodFromMeal = (mealId: number, foodId: number) => {
         db.transaction((tx) => {
