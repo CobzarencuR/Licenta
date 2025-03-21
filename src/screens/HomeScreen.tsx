@@ -1,17 +1,17 @@
 import React from 'react';
-import { View, Text, StyleSheet } from 'react-native';
+import { ScrollView, View, Text, StyleSheet } from 'react-native';
+import UserRemainingMacros from '../components/UserRemainingMacros';
 
 export default function HomeScreen() {
     return (
-        <React.Fragment>
-            <View style={styles.container}>
-                <Text style={styles.text}>Welcome to the Fitness App! 🏋️‍♂️</Text>
-            </View>
-        </React.Fragment>
+        <ScrollView contentContainerStyle={styles.container}>
+            <UserRemainingMacros />
+        </ScrollView>
     );
 }
 
 const styles = StyleSheet.create({
-    container: { flex: 1, justifyContent: 'center', alignItems: 'center' },
-    text: { fontSize: 20, fontWeight: 'bold' },
+    container: {
+        padding: 16,
+    },
 });

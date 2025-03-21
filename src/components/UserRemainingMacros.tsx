@@ -65,7 +65,7 @@ const UserRemainingMacros = () => {
         }, [])
     );
 
-    // Compute consumed macros from all meals in MealContext.
+    // Compute consumed macros from all meals in MealContext
     const computeConsumedMacros = (meals: Meal[]): Macros => {
         return meals.reduce(
             (totals, meal) => {
