@@ -184,9 +184,12 @@ export default function ProfileScreen() {
         const selectedDob = new Date(dob);
         selectedDob.setHours(0, 0, 0, 0);
 
-        //Date of birth must be at least one day before today's date.
-        if (selectedDob >= today) {
-            Alert.alert('Error', "You must change your date of birth to update your profile.");
+        // Calculate the difference in milliseconds and compare to one year (approx. 365 days)
+        const diffMillis = today.getTime() - selectedDob.getTime();
+        const oneYearMillis = 365 * 24 * 60 * 60 * 1000; // approximate one year in milliseconds
+
+        if (diffMillis < oneYearMillis) {
+            Alert.alert('Error', 'Date of birth must be at least one year before today.');
             return;
         }
 

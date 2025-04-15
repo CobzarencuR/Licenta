@@ -4,6 +4,8 @@ const cors = require('cors');
 const { Pool } = require('pg');
 const bodyParser = require('body-parser');
 const port = 3000;
+const bcrypt = require('bcryptjs');
+const jwt = require('jsonwebtoken');
 
 const app = express();
 app.use(cors());
@@ -31,15 +33,46 @@ app.post('/register', async (req, res) => {
         if (checkUser.rows.length > 0) {
             return res.status(400).json({ error: 'Username already exists' });
         }
+        // Hash the password with bcrypt before storing it
+        const salt = await bcrypt.genSalt(10);
+        const hashedPassword = await bcrypt.hash(password, salt);
 
         await pool.query(
             'INSERT INTO users (username, email, password) VALUES ($1, $2, $3)',
-            [username, email, password]
+            [username, email, hashedPassword]
         );
 
         res.json({ message: 'User registered successfully' });
     } catch (error) {
         console.error('Error registering user:', error);
+        res.status(500).json({ error: 'Database error' });
+    }
+});
+
+// Login API using bcrypt and JWT
+app.post('/login', async (req, res) => {
+    const { username, password } = req.body;
+    try {
+        const result = await pool.query('SELECT * FROM users WHERE username = $1', [username]);
+        if (result.rows.length === 0) {
+            return res.status(400).json({ error: 'Invalid username or password' });
+        }
+        const user = result.rows[0];
+        // Compare provided password with hashed password in database.
+        const validPassword = await bcrypt.compare(password, user.password);
+        if (!validPassword) {
+            return res.status(400).json({ error: 'Invalid username or password' });
+        }
+        // Generate a JWT token; expires in 1 hour.
+        const token = jwt.sign(
+            { id: user.id, username: user.username },
+            process.env.JWT_SECRET,
+            { expiresIn: '1h' }
+        );
+        // Return token to client (also set as header if desired).
+        res.header('auth-token', token).json({ token });
+    } catch (error) {
+        console.error('Error during login:', error);
         res.status(500).json({ error: 'Database error' });
     }
 });

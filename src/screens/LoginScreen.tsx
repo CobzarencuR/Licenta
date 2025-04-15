@@ -17,35 +17,62 @@ export default function LoginScreen({ navigation }: Props) {
     const [username, setUsername] = useState('');
     const [password, setPassword] = useState('');
 
+    // const loginUser = async () => {
+    //     if (username && password) {
+    //         db.transaction((tx) => {
+    //             tx.executeSql(
+    //                 'SELECT * FROM users WHERE username = ? AND password = ?;',
+    //                 [username, password],
+    //                 async (tx, results) => {
+    //                     if (results.rows.length > 0) {
+    //                         const userId = results.rows.item(0).id;
+    //                         await AsyncStorage.setItem('loggedInUserId', userId.toString());
+    //                         // setUsername(username);
+    //                         await AsyncStorage.setItem('loggedInUsername', username);
+    //                         // navigation.navigate('Main', { username }); // Navigate to Main screen with username
+    //                         navigation.navigate('Main');
+    //                     } else {
+    //                         Alert.alert('Error', 'Invalid username or password');
+    //                     }
+    //                 },
+    //                 (error) => {
+    //                     console.log('Error checking credentials', error);
+    //                     Alert.alert('Error', 'Something went wrong');
+    //                 }
+    //             );
+    //         });
+    //     } else {
+    //         Alert.alert('Error', 'Please fill in both fields');
+    //     }
+    // };
     const loginUser = async () => {
         if (username && password) {
-            db.transaction((tx) => {
-                tx.executeSql(
-                    'SELECT * FROM users WHERE username = ? AND password = ?;',
-                    [username, password],
-                    async (tx, results) => {
-                        if (results.rows.length > 0) {
-                            const userId = results.rows.item(0).id;
-                            await AsyncStorage.setItem('loggedInUserId', userId.toString());
-                            // setUsername(username);
-                            await AsyncStorage.setItem('loggedInUsername', username);
-                            // navigation.navigate('Main', { username }); // Navigate to Main screen with username
-                            navigation.navigate('Main');
-                        } else {
-                            Alert.alert('Error', 'Invalid username or password');
-                        }
-                    },
-                    (error) => {
-                        console.log('Error checking credentials', error);
-                        Alert.alert('Error', 'Something went wrong');
-                    }
-                );
-            });
+            try {
+                const response = await fetch('http://10.0.2.2:3000/login', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ username, password }),
+                });
+
+                const data = await response.json();
+                if (!response.ok) {
+                    Alert.alert('Error', data.error || 'Invalid username or password');
+                } else {
+                    // Save token and username in AsyncStorage
+                    await AsyncStorage.setItem('auth-token', data.token);
+                    await AsyncStorage.setItem('loggedInUsername', username);
+                    // Optionally, decode token to get user id and store it.
+                    // For this example, we'll assume you do that separately.
+                    navigation.navigate('Main');
+                }
+            } catch (error) {
+                console.error('Login error:', error);
+                Alert.alert('Error', 'Something went wrong');
+            }
         } else {
             Alert.alert('Error', 'Please fill in both fields');
         }
     };
-
     return (
         <View style={styles.container}>
             <Text style={styles.text}>Login</Text>
