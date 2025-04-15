@@ -7,6 +7,7 @@ import { Dropdown } from 'react-native-element-dropdown';
 import { useNavigation } from '@react-navigation/native';
 import { launchImageLibrary, ImageLibraryOptions } from 'react-native-image-picker';
 import { UserContext } from '../context/UserContext';
+import { Screen } from 'react-native-screens';
 
 const db = SQLite.openDatabase(
     { name: 'fitnessApp.db', location: 'default' },
@@ -256,11 +257,6 @@ export default function ProfileScreen() {
         });
     };
 
-    const handleLogout = async () => {
-        await AsyncStorage.removeItem('loggedInUsername');
-        navigation.navigate('Login' as never);
-    };
-
     return (
         <ScrollView>
             <View style={styles.container}>
@@ -361,10 +357,6 @@ export default function ProfileScreen() {
                 <TouchableOpacity style={styles.savebutton} onPress={updateProfile}>
                     <Text style={styles.buttonText}>Save Profile</Text>
                 </TouchableOpacity>
-
-                <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
-                    <Text style={styles.buttonText}>Logout</Text>
-                </TouchableOpacity>
             </View >
         </ScrollView>
     );
@@ -372,15 +364,14 @@ export default function ProfileScreen() {
 
 const styles = StyleSheet.create({
     container: { flex: 1, paddingVertical: 20, backgroundColor: '#fff' },
-    header: { fontSize: 24, fontWeight: 'bold', marginBottom: 20, textAlign: 'center' },
+    header: { fontSize: 24, fontWeight: 'bold', marginBottom: 25, textAlign: 'center' },
     row: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', borderBottomWidth: 1, borderBottomColor: '#ccc', height: 50, marginHorizontal: 15 },
     label: { fontSize: 18, marginLeft: 15 },
     value: { fontSize: 16, color: '#333', marginRight: 15 },
     dropdownButton: { borderWidth: 1, borderRadius: 5, borderColor: '#ccc', width: 'auto' },
     dropdown: { backgroundColor: '#fff', borderColor: '#ccc', borderRadius: 5, width: 100, marginRight: 15 },
-    savebutton: { width: '50%', alignSelf: 'center', backgroundColor: '#007BFF', padding: 10, borderRadius: 5, alignItems: 'center', marginTop: 50 },
+    savebutton: { width: '30%', alignSelf: 'center', backgroundColor: '#007BFF', padding: 10, borderRadius: 5, alignItems: 'center', marginTop: 25 },
     buttonText: { color: 'white', fontWeight: 'bold' },
-    logoutButton: { width: '50%', alignSelf: 'center', backgroundColor: '#FF3B30', padding: 10, borderRadius: 5, alignItems: 'center', marginTop: 15 },
     photoContainer: {
         width: 50,
         height: 50,

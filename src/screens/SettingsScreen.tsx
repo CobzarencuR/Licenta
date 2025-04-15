@@ -3,6 +3,7 @@ import { View, Text, TextInput, Button, StyleSheet, Alert, TouchableOpacity } fr
 import { useNavigation } from "@react-navigation/native";
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../navigation/AppNavigator';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 type Props = NativeStackScreenProps<RootStackParamList, 'Settings'>;
 
 const settingsOptions = [
@@ -14,6 +15,11 @@ const settingsOptions = [
 ];
 
 export default function SettingsScreen({ navigation }: Props) {
+    const handleLogout = async () => {
+        await AsyncStorage.removeItem('loggedInUsername');
+        navigation.navigate('Login' as never);
+    };
+
     return (
         <View style={styles.container}>
             <Text style={styles.title}>Settings</Text>
@@ -27,10 +33,13 @@ export default function SettingsScreen({ navigation }: Props) {
                     <Text style={styles.optionText}>{option.name}</Text>
                 </TouchableOpacity>
             ))}
+
+            <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
+                <Text style={styles.buttonText}>Logout</Text>
+            </TouchableOpacity>
         </View>
     );
 };
-
 
 const styles = StyleSheet.create({
     container: {
@@ -51,4 +60,7 @@ const styles = StyleSheet.create({
     optionText: {
         fontSize: 18,
     },
+    buttonText: { color: 'white', fontWeight: 'bold' },
+    logoutButton: { width: '25%', alignSelf: 'flex-start', backgroundColor: '#FF3B30', padding: 10, borderRadius: 5, alignItems: 'center', marginTop: 20, marginLeft: 10, },
+
 });
