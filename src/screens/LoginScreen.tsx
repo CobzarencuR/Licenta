@@ -17,34 +17,6 @@ export default function LoginScreen({ navigation }: Props) {
     const [username, setUsername] = useState('');
     const [password, setPassword] = useState('');
 
-    // const loginUser = async () => {
-    //     if (username && password) {
-    //         db.transaction((tx) => {
-    //             tx.executeSql(
-    //                 'SELECT * FROM users WHERE username = ? AND password = ?;',
-    //                 [username, password],
-    //                 async (tx, results) => {
-    //                     if (results.rows.length > 0) {
-    //                         const userId = results.rows.item(0).id;
-    //                         await AsyncStorage.setItem('loggedInUserId', userId.toString());
-    //                         // setUsername(username);
-    //                         await AsyncStorage.setItem('loggedInUsername', username);
-    //                         // navigation.navigate('Main', { username }); // Navigate to Main screen with username
-    //                         navigation.navigate('Main');
-    //                     } else {
-    //                         Alert.alert('Error', 'Invalid username or password');
-    //                     }
-    //                 },
-    //                 (error) => {
-    //                     console.log('Error checking credentials', error);
-    //                     Alert.alert('Error', 'Something went wrong');
-    //                 }
-    //             );
-    //         });
-    //     } else {
-    //         Alert.alert('Error', 'Please fill in both fields');
-    //     }
-    // };
     const loginUser = async () => {
         if (username && password) {
             try {
@@ -61,8 +33,7 @@ export default function LoginScreen({ navigation }: Props) {
                     // Save token and username in AsyncStorage
                     await AsyncStorage.setItem('auth-token', data.token);
                     await AsyncStorage.setItem('loggedInUsername', username);
-                    // Optionally, decode token to get user id and store it.
-                    // For this example, we'll assume you do that separately.
+
                     navigation.navigate('Main');
                 }
             } catch (error) {

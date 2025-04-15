@@ -231,7 +231,6 @@ export default function ProfileScreen() {
                                     protein: macros.protein,
                                     carbs: macros.carbs,
                                     fats: macros.fat,
-                                    photoUri,
                                 }),
                             });
                             const data = await response.json();

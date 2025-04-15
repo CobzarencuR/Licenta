@@ -20,8 +20,7 @@ export default function Register({ navigation }: any) {
                     id INTEGER PRIMARY KEY AUTOINCREMENT,
                     photoUri TEXT,
                     username TEXT, 
-                    email TEXT, 
-                    password TEXT, 
+                    email TEXT,  
                     height REAL, 
                     weight REAL, 
                     sex TEXT, 
@@ -85,8 +84,8 @@ export default function Register({ navigation }: any) {
                             Alert.alert('Error', 'Username already exists. Please choose another one.');
                         } else {
                             tx.executeSql(
-                                'INSERT INTO users (username, email, password) VALUES (?, ?, ?);',
-                                [username, email, password],
+                                'INSERT INTO users (username, email) VALUES (?, ?);',
+                                [username, email],
                                 async () => {
                                     // Send data to PostgreSQL
                                     try {
