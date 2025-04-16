@@ -28,6 +28,7 @@ export default function Register({ navigation }: any) {
                     age INTEGER,
                     activityLevel REAL,
                     objective TEXT,
+                    experience TEXT,
                     calories REAL,
                     protein REAL,
                     carbs REAL,

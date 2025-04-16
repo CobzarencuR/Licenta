@@ -29,6 +29,7 @@ export default function ProfileScreen() {
     const [objective, setObjective] = useState('');
     const navigation = useNavigation();
     const { setUser } = useContext(UserContext);
+    const [experience, setExperience] = useState('');
 
     // Calculate age based on DOB
     const calculateAge = (dob: Date) => {
@@ -61,6 +62,11 @@ export default function ProfileScreen() {
         { label: 'Weight Gain', value: 'gain' }
     ]
 
+    const ExperienceOptions = [
+        { label: 'Beginner', value: 'beginner' },
+        { label: 'Intermediate', value: 'intermediate' },
+        { label: 'Advanced', value: 'advanced' }
+    ]
 
     useEffect(() => {
         const fetchUserProfile = async () => {
@@ -86,6 +92,7 @@ export default function ProfileScreen() {
                             setInitialDob(row.dob ? new Date(row.dob) : new Date());
                             setActivityLevel(row.activityLevel ? row.activityLevel.toString() : '');
                             setObjective(row.objective || '');
+                            setExperience(row.experience || '');
                             // Update global user context so Header can see the new photo
                             setUser({
                                 username: row.username,
@@ -174,7 +181,7 @@ export default function ProfileScreen() {
             return;
         }
 
-        if (!height || !weight || !sex || !dob || !activityLevel || !objective || !photoUri) {
+        if (!height || !weight || !sex || !dob || !activityLevel || !objective || !experience || !photoUri) {
             Alert.alert('Error', 'All fields must be filled in before saving.');
             return;
         }
@@ -204,9 +211,9 @@ export default function ProfileScreen() {
         db.transaction(tx => {
             tx.executeSql(
                 `UPDATE users
-                        SET height = ?, weight = ?, sex = ?, dob = ?, age = ?, activityLevel = ?, objective = ?, calories = ?, protein = ?, carbs = ?, fats = ?, photoUri = ?
+                        SET height = ?, weight = ?, sex = ?, dob = ?, age = ?, activityLevel = ?, objective = ?, experience = ?, calories = ?, protein = ?, carbs = ?, fats = ?, photoUri = ?
                         WHERE username = ?;`,
-                [height, weight, sex, dob.toISOString().split('T')[0], age, activityLevel, objective, macros.totalCalories, macros.protein, macros.carbs, macros.fat, photoUri, username],
+                [height, weight, sex, dob.toISOString().split('T')[0], age, activityLevel, objective, experience, macros.totalCalories, macros.protein, macros.carbs, macros.fat, photoUri, username],
                 async (_, result) => {
                     console.log('Rows affected:', result.rowsAffected);
                     if (result.rowsAffected > 0) {
@@ -228,6 +235,7 @@ export default function ProfileScreen() {
                                     age,
                                     activityLevel,
                                     objective,
+                                    experience,
                                     calories: macros.totalCalories,
                                     protein: macros.protein,
                                     carbs: macros.carbs,
@@ -351,6 +359,19 @@ export default function ProfileScreen() {
                         placeholder="Select objective"
                         value={objective}
                         onChange={item => setObjective(item.value)}
+                    />
+                </View>
+
+                <View style={styles.row}>
+                    <Text style={styles.label}>Experience:</Text>
+                    <Dropdown
+                        style={styles.dropdown}
+                        data={ExperienceOptions}
+                        labelField="label"
+                        valueField="value"
+                        placeholder="Select experience"
+                        value={experience}
+                        onChange={item => setExperience(item.value)}
                     />
                 </View>
 

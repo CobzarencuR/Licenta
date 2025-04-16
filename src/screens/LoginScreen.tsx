@@ -60,13 +60,11 @@ export default function LoginScreen({ navigation }: Props) {
                 secureTextEntry
                 onChangeText={setPassword}
             />
-            {/* <Button title="Login" onPress={loginUser} /> */}
             <TouchableOpacity style={styles.button} onPress={loginUser}>
                 <Text style={styles.buttonText}>LOGIN</Text>
             </TouchableOpacity>
-            {/* <Button title="Go to Register" onPress={() => navigation.navigate('Register')} /> */}
             <TouchableOpacity style={styles.button} onPress={() => navigation.navigate('Register')}>
-                <Text style={styles.buttonText}>GO TO REGISTER</Text>
+                <Text style={styles.buttonText}>REGISTER</Text>
             </TouchableOpacity>
         </View>
     );
