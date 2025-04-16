@@ -80,8 +80,7 @@ app.post('/login', async (req, res) => {
 // Update User Profile API
 app.post('/updateProfile', async (req, res) => {
     try {
-        const { username, height, weight, sex, dob, age, activityLevel, objective, experience, calories, protein, carbs, fats } = req.body;
-
+        const { username, height, weight, sex, dob, age, activityLevel, objective, experience, trainingDays, calories, protein, carbs, fats } = req.body;
         // Ensure all required fields are provided
         if (!username || !height || !weight || !sex || !dob || !age || !activityLevel || !objective || !experience) {
             return res.status(400).json({ message: 'All fields are required.' });
@@ -90,9 +89,9 @@ app.post('/updateProfile', async (req, res) => {
         // Update the user profile in PostgreSQL
         const result = await pool.query(
             `UPDATE users 
-            SET height = $1, weight = $2, sex = $3, dob = $4, age = $5, activityLevel = $6, objective = $7, experience = $8, calories = $9, protein = $10, carbs = $11, fats = $12
-            WHERE username = $13;`,
-            [height, weight, sex, dob, age, activityLevel, objective, experience, calories, protein, carbs, fats, username]
+            SET height = $1, weight = $2, sex = $3, dob = $4, age = $5, activityLevel = $6, objective = $7, experience = $8, trainingDays = $9, calories = $10, protein = $11, carbs = $12, fats = $13
+            WHERE username = $14;`,
+            [height, weight, sex, dob, age, activityLevel, objective, experience, trainingDays, calories, protein, carbs, fats, username]
         );
 
         if (result.rowCount > 0) {

@@ -8,6 +8,7 @@ import { useNavigation } from '@react-navigation/native';
 import { launchImageLibrary, ImageLibraryOptions } from 'react-native-image-picker';
 import { UserContext } from '../context/UserContext';
 import { Screen } from 'react-native-screens';
+import Slider from '@react-native-community/slider';
 
 const db = SQLite.openDatabase(
     { name: 'fitnessApp.db', location: 'default' },
@@ -27,9 +28,10 @@ export default function ProfileScreen() {
     const [showDatePicker, setShowDatePicker] = useState(false);
     const [activityLevel, setActivityLevel] = useState('');
     const [objective, setObjective] = useState('');
+    const [experience, setExperience] = useState('');
+    const [trainingDays, setTrainingDays] = useState<number>(2);
     const navigation = useNavigation();
     const { setUser } = useContext(UserContext);
-    const [experience, setExperience] = useState('');
 
     // Calculate age based on DOB
     const calculateAge = (dob: Date) => {
@@ -93,6 +95,7 @@ export default function ProfileScreen() {
                             setActivityLevel(row.activityLevel ? row.activityLevel.toString() : '');
                             setObjective(row.objective || '');
                             setExperience(row.experience || '');
+                            setTrainingDays(row.trainingDays ? row.trainingDays : 2);
                             // Update global user context so Header can see the new photo
                             setUser({
                                 username: row.username,
@@ -181,7 +184,7 @@ export default function ProfileScreen() {
             return;
         }
 
-        if (!height || !weight || !sex || !dob || !activityLevel || !objective || !experience || !photoUri) {
+        if (!height || !weight || !sex || !dob || !activityLevel || !objective || !experience || !trainingDays || !photoUri) {
             Alert.alert('Error', 'All fields must be filled in before saving.');
             return;
         }
@@ -211,9 +214,9 @@ export default function ProfileScreen() {
         db.transaction(tx => {
             tx.executeSql(
                 `UPDATE users
-                        SET height = ?, weight = ?, sex = ?, dob = ?, age = ?, activityLevel = ?, objective = ?, experience = ?, calories = ?, protein = ?, carbs = ?, fats = ?, photoUri = ?
+                        SET height = ?, weight = ?, sex = ?, dob = ?, age = ?, activityLevel = ?, objective = ?, experience = ?, trainingDays = ?, calories = ?, protein = ?, carbs = ?, fats = ?, photoUri = ?
                         WHERE username = ?;`,
-                [height, weight, sex, dob.toISOString().split('T')[0], age, activityLevel, objective, experience, macros.totalCalories, macros.protein, macros.carbs, macros.fat, photoUri, username],
+                [height, weight, sex, dob.toISOString().split('T')[0], age, activityLevel, objective, experience, trainingDays, macros.totalCalories, macros.protein, macros.carbs, macros.fat, photoUri, username],
                 async (_, result) => {
                     console.log('Rows affected:', result.rowsAffected);
                     if (result.rowsAffected > 0) {
@@ -236,6 +239,7 @@ export default function ProfileScreen() {
                                     activityLevel,
                                     objective,
                                     experience,
+                                    trainingDays,
                                     calories: macros.totalCalories,
                                     protein: macros.protein,
                                     carbs: macros.carbs,
@@ -375,6 +379,20 @@ export default function ProfileScreen() {
                     />
                 </View>
 
+                <View style={styles.row}>
+                    <Text style={styles.label}>Training Days: {trainingDays}</Text>
+                    <Slider
+                        style={styles.slider}
+                        minimumValue={2}
+                        maximumValue={experience === 'beginner' ? 4 : experience === 'intermediate' ? 6 : 7}
+                        step={1}
+                        value={trainingDays}
+                        onValueChange={setTrainingDays}
+                        minimumTrackTintColor="#007BFF"
+                        maximumTrackTintColor="#ccc"
+                    />
+                </View>
+
                 <TouchableOpacity style={styles.savebutton} onPress={updateProfile}>
                     <Text style={styles.buttonText}>Save Profile</Text>
                 </TouchableOpacity>
@@ -384,8 +402,8 @@ export default function ProfileScreen() {
 }
 
 const styles = StyleSheet.create({
-    container: { flex: 1, paddingVertical: 20, backgroundColor: '#fff' },
-    header: { fontSize: 24, fontWeight: 'bold', marginBottom: 25, textAlign: 'center' },
+    container: { flex: 1, paddingVertical: 10, backgroundColor: '#fff' },
+    header: { fontSize: 24, fontWeight: 'bold', marginBottom: 15, textAlign: 'center' },
     row: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', borderBottomWidth: 1, borderBottomColor: '#ccc', height: 50, marginHorizontal: 15 },
     label: { fontSize: 18, marginLeft: 15 },
     value: { fontSize: 16, color: '#333', marginRight: 15 },
@@ -413,6 +431,10 @@ const styles = StyleSheet.create({
         fontSize: 12,
         color: '#aaa',
         textAlign: 'center',
+    },
+    slider: {
+        width: '50%',
+        height: 40,
     },
 });
 

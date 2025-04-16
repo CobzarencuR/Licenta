@@ -29,6 +29,7 @@ export default function Register({ navigation }: any) {
                     activityLevel REAL,
                     objective TEXT,
                     experience TEXT,
+                    trainingDays INTEGER,
                     calories REAL,
                     protein REAL,
                     carbs REAL,
