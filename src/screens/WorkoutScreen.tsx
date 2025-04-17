@@ -1,5 +1,6 @@
-import React, { useContext, useEffect, useState } from 'react'
+import React, { useCallback, useContext, useEffect, useState } from 'react'
 import { View, Text, FlatList, StyleSheet, ActivityIndicator } from 'react-native'
+import { useFocusEffect } from '@react-navigation/native';
 import { WorkoutContext } from '../context/WorkoutContext'
 
 type SplitDay = { name: string; muscles: string[] }
@@ -37,6 +38,10 @@ const splitTemplates: Record<string, SplitDay> = {
         name: 'Lower',
         muscles: ['quads', 'hamstrings', 'glutes', 'calves', 'abs'],
     },
+    'arms&shoulders': {
+        name: 'Arms & Shoulders',
+        muscles: ['biceps', 'triceps', 'shoulders'],
+    },
 }
 
 const splitKeysByDays: Record<number, (keyof typeof splitTemplates)[]> = {
@@ -45,6 +50,7 @@ const splitKeysByDays: Record<number, (keyof typeof splitTemplates)[]> = {
     4: ['upper', 'lower', 'upper', 'lower'],
     5: ['push', 'pull', 'legs', 'upper', 'lower'],
     6: ['push', 'pull', 'legs', 'push', 'pull', 'legs'],
+    7: ['push', 'pull', 'legs', 'arms&shoulders', 'push', 'pull', 'legs'],
 }
 
 const splitsByDays: Record<number, SplitDay[]> = Object.fromEntries(
@@ -56,9 +62,16 @@ const splitsByDays: Record<number, SplitDay[]> = Object.fromEntries(
 
 
 export default function WorkoutScreen() {
-    const { trainingDays } = useContext(WorkoutContext)
+    const { trainingDays, reloadTrainingDays } = useContext(WorkoutContext);
     const [exByDay, setExByDay] = useState<Record<number, Exercise[]>>({})
     const [loading, setLoading] = useState(true)
+
+    useFocusEffect(
+        useCallback(() => {
+            // every time this screen comes into view, re-load
+            reloadTrainingDays();
+        }, [reloadTrainingDays])
+    );
 
     useEffect(() => {
         if (trainingDays == null) return

@@ -9,6 +9,7 @@ import { launchImageLibrary, ImageLibraryOptions } from 'react-native-image-pick
 import { UserContext } from '../context/UserContext';
 import { Screen } from 'react-native-screens';
 import Slider from '@react-native-community/slider';
+import { WorkoutContext } from '../context/WorkoutContext';
 
 const db = SQLite.openDatabase(
     { name: 'fitnessApp.db', location: 'default' },
@@ -33,6 +34,7 @@ export default function ProfileScreen() {
     const navigation = useNavigation();
     const { setUser } = useContext(UserContext);
     const [profileLoaded, setProfileLoaded] = useState(false);
+    const { reloadTrainingDays } = useContext(WorkoutContext);
 
     // Calculate age based on DOB
     const calculateAge = (dob: Date) => {
@@ -228,8 +230,8 @@ export default function ProfileScreen() {
                     console.log('Rows affected:', result.rowsAffected);
                     if (result.rowsAffected > 0) {
                         Alert.alert('Success', 'Profile updated successfully');
-                        // Now send the updated data to PostgreSQL
                         setUser({ username, photoUri });
+                        reloadTrainingDays();
                         try {
                             const response = await fetch('http://10.0.2.2:3000/updateProfile', {
                                 method: 'POST',
