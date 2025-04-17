@@ -1,4 +1,3 @@
-// UserContext.tsx
 import React, { createContext, useState, ReactNode } from 'react';
 
 export type User = {

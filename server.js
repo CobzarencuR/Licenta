@@ -137,4 +137,25 @@ app.get('/getFoodsByCategory', async (req, res) => {
     }
 });
 
+app.get('/getExercisesByPrimaryMuscle', async (req, res) => {
+    try {
+        const { muscles } = req.query;
+        if (!muscles) {
+            return res.status(400).json({ error: 'muscles query required' });
+        }
+        const muscleArr = (muscles).split(',');
+        const result = await pool.query(
+            `SELECT *
+         FROM exercises
+        WHERE primary_muscle_group = ANY($1)
+        ORDER BY exerciseid;`,
+            [muscleArr]
+        );
+        res.json(result.rows);
+    } catch (err) {
+        console.error('Error fetching exercises by primary muscle:', err);
+        res.status(500).json({ error: 'Database error' });
+    }
+});
+
 app.listen(port, () => console.log('Server running on http://10.0.2.2:3000'));

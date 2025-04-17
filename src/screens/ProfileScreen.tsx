@@ -32,6 +32,7 @@ export default function ProfileScreen() {
     const [trainingDays, setTrainingDays] = useState<number>(2);
     const navigation = useNavigation();
     const { setUser } = useContext(UserContext);
+    const [profileLoaded, setProfileLoaded] = useState(false);
 
     // Calculate age based on DOB
     const calculateAge = (dob: Date) => {
@@ -94,14 +95,20 @@ export default function ProfileScreen() {
                             setInitialDob(row.dob ? new Date(row.dob) : new Date());
                             setActivityLevel(row.activityLevel ? row.activityLevel.toString() : '');
                             setObjective(row.objective || '');
-                            setExperience(row.experience || '');
-                            setTrainingDays(row.trainingDays ? row.trainingDays : 2);
-                            // Update global user context so Header can see the new photo
+                            setExperience(prev => {
+                                return row.experience !== prev ? row.experience : prev;
+                            });
+                            setTrainingDays(prev => {
+                                const dbDays = row.trainingDays || 2;
+                                return dbDays !== prev ? dbDays : prev;
+                            });
+                            // Global user context
                             setUser({
                                 username: row.username,
                                 photoUri: row.photoUri,
                             });
                         }
+                        setProfileLoaded(true);
                     },
                     (error) => console.log('Error fetching user data:', error)
                 );
@@ -381,16 +388,18 @@ export default function ProfileScreen() {
 
                 <View style={styles.row}>
                     <Text style={styles.label}>Training Days: {trainingDays}</Text>
-                    <Slider
-                        style={styles.slider}
-                        minimumValue={2}
-                        maximumValue={experience === 'beginner' ? 4 : experience === 'intermediate' ? 6 : 7}
-                        step={1}
-                        value={trainingDays}
-                        onValueChange={setTrainingDays}
-                        minimumTrackTintColor="#007BFF"
-                        maximumTrackTintColor="#ccc"
-                    />
+                    {profileLoaded && (
+                        <Slider
+                            style={styles.slider}
+                            minimumValue={2}
+                            maximumValue={experience === 'beginner' ? 4 : experience === 'intermediate' ? 6 : 7}
+                            step={1}
+                            value={trainingDays}
+                            onValueChange={(v) => setTrainingDays(v)}
+                            minimumTrackTintColor="#007BFF"
+                            maximumTrackTintColor="#ccc"
+                        />
+                    )}
                 </View>
 
                 <TouchableOpacity style={styles.savebutton} onPress={updateProfile}>
