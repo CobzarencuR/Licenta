@@ -13,6 +13,9 @@ type Exercise = {
     primary_muscle_group: string
     secondary_muscle_group: string | null
     tertiary_muscle_group: string | null
+    sets?: number
+    reps?: number
+    weight?: string
 }
 
 const splitTemplates: Record<string, SplitDay> = {
@@ -72,12 +75,36 @@ const splitKeysByDays: Record<number, (keyof typeof splitTemplates)[]> = {
     6: ['push', 'pull', 'legs', 'push', 'pull', 'legs'],
     7: ['push', 'pull', 'legs', 'upper', 'lower', 'push', 'pull'],
 }
-const splitsByDays: Record<number, SplitDay[]> = Object.fromEntries(
+
+const splitsByDays = Object.fromEntries(
     Object.entries(splitKeysByDays).map(([days, keys]) => [
         Number(days),
-        keys.map(k => splitTemplates[k]),
+        keys.map((k) => splitTemplates[k]),
     ])
-) as any
+) as Record<number, SplitDay[]>
+
+// slot‑by‑slot schemes
+const scheme: Record<string, string[]> = {
+    'Full Body': ['quads', 'quads', 'chest', 'middleback', 'upperchest', 'lats', 'lateralshoulders', 'longtriceps', 'biceps'],
+    Upper: [
+        'chest', 'middleback', 'upperchest', 'lats', 'lateralshoulders', 'longtriceps', 'biceps'
+    ],
+    Lower: [
+        'quads', 'quads', 'hamstrings', 'calves', 'abs'
+    ],
+    Push: [
+        'chest', 'upperchest', 'lateralshoulders', 'longtriceps', 'lateraltriceps'
+    ],
+    Pull: [
+        'middleback', 'lats', 'middleback', 'rearshoulders', 'longbiceps', 'shortbiceps'
+    ],
+    Legs: [
+        'quads', 'quads', 'hamstrings', 'calves', 'abs'
+    ],
+}
+
+const compound = new Set(['chest', 'upperchest', 'lowerchest', 'lats', 'middleback', 'quads'])
+const isolation = new Set(['biceps', 'triceps', 'shoulders', 'lateralshoulders', 'frontalshoulders', 'rearshoulders', 'lateraltriceps', 'longtriceps', 'shortbiceps', 'longbiceps', 'brachialis', 'hamstrings', 'calves', 'abs'])
 
 export default function WorkoutScreen() {
     const { trainingDays, reloadTrainingDays } = useContext(WorkoutContext)
@@ -101,70 +128,41 @@ export default function WorkoutScreen() {
 
         setLoading(true)
             ; (async () => {
-                // 1) figure out every muscle we need
-                const musclesNeeded = Array.from(
-                    new Set(split.flatMap(d => d.muscles))
-                )
-
-                // 2) fetch & filter by difficulty
+                // 1) fetch all candidate exercises
+                const musclesNeeded = Array.from(new Set(split.flatMap(d => d.muscles)))
                 const qs = encodeURIComponent(musclesNeeded.join(','))
-                const res = await fetch(
-                    `http://10.0.2.2:3000/getExercisesByPrimaryMuscle?muscles=${qs}`
-                )
+                const res = await fetch(`http://10.0.2.2:3000/getExercisesByPrimaryMuscle?muscles=${qs}`)
                 let all: Exercise[] = res.ok ? await res.json() : []
+
+                // 2) filter by difficulty
                 if (user.experience === 'beginner') {
                     all = all.filter(e => e.difficulty === 'beginner')
                 } else if (user.experience === 'intermediate') {
-                    all = all.filter(e =>
-                        ['beginner', 'intermediate'].includes(e.difficulty)
-                    )
+                    all = all.filter(e => ['beginner', 'intermediate'].includes(e.difficulty))
                 }
 
-                // 3) build master buckets
-                const masterBuckets: Record<string, Exercise[]> = {}
-                musclesNeeded.forEach(m => {
-                    masterBuckets[m] = all.filter(e => e.primary_muscle_group === m)
-                })
+                // 3) bucket by muscle
+                const buckets: Record<string, Exercise[]> = {}
+                musclesNeeded.forEach(m =>
+                    buckets[m] = all.filter(e => e.primary_muscle_group === m).slice()
+                )
 
-                // 4) define your slot‑by‑slot pick order instead of counts:
-                const scheme: Record<string, string[]> = {
-                    'Full Body': [
-                        'quads', 'quads', 'chest', 'middleback', 'upperchest', 'lats', 'lateralshoulders', 'longtriceps', 'biceps'
-                    ],
-                    Upper: [
-                        'chest', 'middleback', 'upperchest', 'lats', 'lateralshoulders', 'longtriceps', 'biceps'
-                    ],
-                    Lower: [
-                        'quads', 'quads', 'hamstrings', 'calves', 'abs'
-                    ],
-                    Push: [
-                        'chest', 'upperchest', 'lateralshoulders', 'longtriceps', 'lateraltriceps'
-                    ],
-                    Pull: [
-                        'middleback', 'lats', 'middleback', 'rearshoulders', 'longbiceps', 'shortbiceps'
-                    ],
-                    Legs: [
-                        'quads', 'quads', 'hamstrings', 'calves', 'abs'
-                    ],
-                }
-
-                // 5) build each day’s picks by walking that array
+                // 4) pick per‑slot and tag sets/reps
                 const dayMap: Record<number, Exercise[]> = {}
                 split.forEach((day, idx) => {
-                    // clone each muscle bucket so we don't exhaust the master
-                    const localBuckets: Record<string, Exercise[]> = {}
-                    Object.entries(masterBuckets).forEach(([m, arr]) => {
-                        localBuckets[m] = [...arr]
-                    })
-
                     const picks: Exercise[] = []
-                        ; (scheme[day.name] || []).forEach(muscle => {
-                            const bucket = localBuckets[muscle] || []
-                            if (bucket.length) {
-                                picks.push(bucket.shift()!)
-                            }
-                        })
-
+                    const slots = scheme[day.name] || []
+                    slots.forEach(muscle => {
+                        const bucket = buckets[muscle] || []
+                        if (bucket.length) {
+                            const ex = bucket.shift()!  // take first
+                            // tag sets/reps/weight
+                            ex.sets = 3
+                            ex.reps = compound.has(muscle) ? 10 : 12
+                            ex.weight = 'TBD'
+                            picks.push(ex)
+                        }
+                    })
                     dayMap[idx] = picks
                 })
 
@@ -183,6 +181,7 @@ export default function WorkoutScreen() {
     }
 
     const split = splitsByDays[trainingDays] || []
+
     return (
         <View style={styles.container}>
             <Text style={styles.header}>
@@ -199,28 +198,18 @@ export default function WorkoutScreen() {
                         <Text style={styles.dayLabel}>
                             Day {index + 1}: {item.name}
                         </Text>
-                        <Text style={styles.muscles}>
-                            Targets: {item.muscles.join(', ')}
-                        </Text>
-
-                        {exByDay[index]?.length ? (
-                            <FlatList
-                                data={exByDay[index]}
-                                keyExtractor={ex => ex.exerciseid.toString()}
-                                renderItem={({ item: ex }) => (
-                                    <View style={styles.exItem}>
-                                        <Text style={styles.exName}>{ex.name}</Text>
-                                        <Text style={styles.exDetails}>
-                                            ({ex.primary_muscle_group})
-                                        </Text>
-                                    </View>
-                                )}
-                            />
-                        ) : (
-                            <Text style={styles.emptyText}>
-                                No exercises found for these targets.
-                            </Text>
-                        )}
+                        <FlatList
+                            data={exByDay[index] || []}
+                            keyExtractor={ex => ex.exerciseid.toString()}
+                            renderItem={({ item: ex }) => (
+                                <View style={styles.exItem}>
+                                    <Text style={styles.exName}>{ex.name}</Text>
+                                    <Text style={styles.exDetails}>
+                                        {ex.sets}×{ex.reps} x {ex.weight}kg
+                                    </Text>
+                                </View>
+                            )}
+                        />
                     </View>
                 )}
             />
@@ -233,10 +222,8 @@ const styles = StyleSheet.create({
     container: { flex: 1, padding: 16, backgroundColor: '#fff' },
     header: { fontSize: 22, fontWeight: 'bold', marginBottom: 16, textAlign: 'center' },
     dayBox: { marginBottom: 20, padding: 12, backgroundColor: '#f0f4f7', borderRadius: 8 },
-    dayLabel: { fontSize: 18, fontWeight: '600' },
-    muscles: { fontSize: 14, color: '#555', marginBottom: 8 },
-    exItem: { flexDirection: 'row', marginBottom: 4 },
+    dayLabel: { fontSize: 18, fontWeight: '600', marginBottom: 8 },
+    exItem: { flexDirection: 'row', justifyContent: 'space-between', marginBottom: 4 },
     exName: { fontSize: 16, flex: 1 },
     exDetails: { fontSize: 14, color: '#888', textAlign: 'right' },
-    emptyText: { fontStyle: 'italic', color: '#888' },
 })
