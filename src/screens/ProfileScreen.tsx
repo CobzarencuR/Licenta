@@ -108,6 +108,7 @@ export default function ProfileScreen() {
                             setUser({
                                 username: row.username,
                                 photoUri: row.photoUri,
+                                experience: row.experience,
                             });
                         }
                         setProfileLoaded(true);
@@ -230,7 +231,7 @@ export default function ProfileScreen() {
                     console.log('Rows affected:', result.rowsAffected);
                     if (result.rowsAffected > 0) {
                         Alert.alert('Success', 'Profile updated successfully');
-                        setUser({ username, photoUri });
+                        setUser({ username, photoUri, experience });
                         reloadTrainingDays();
                         try {
                             const response = await fetch('http://10.0.2.2:3000/updateProfile', {
