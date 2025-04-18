@@ -22,8 +22,8 @@ const splitTemplates: Record<string, SplitDay> = {
             'chest', 'upperchest', 'lowerchest',
             'middleback', 'lats',
             'frontalshoulders', 'lateralshoulders', 'rearshoulders',
-            'brachialis', 'longbiceps', 'shortbiceps', 'biceps',
-            'lateraltriceps', 'longtriceps',
+            'biceps', 'longbiceps', 'shortbiceps', 'brachialis',
+            'triceps', 'lateraltriceps', 'longtriceps',
             'quads', 'hamstrings', 'glutes', 'calves', 'abs',
         ],
     },
@@ -32,15 +32,15 @@ const splitTemplates: Record<string, SplitDay> = {
         muscles: [
             'chest', 'upperchest', 'lowerchest',
             'frontalshoulders', 'lateralshoulders',
-            'lateraltriceps', 'longtriceps', 'triceps',
+            'triceps', 'lateraltriceps', 'longtriceps',
         ],
     },
     pull: {
         name: 'Pull',
         muscles: [
             'middleback', 'lats',
-            'frontalshoulders', 'lateralshoulders', 'rearshoulders',
-            'brachialis', 'longbiceps', 'shortbiceps', 'biceps',
+            'rearshoulders',
+            'biceps', 'longbiceps', 'shortbiceps', 'brachialis',
         ],
     },
     legs: {
@@ -53,8 +53,8 @@ const splitTemplates: Record<string, SplitDay> = {
             'chest', 'upperchest', 'lowerchest',
             'middleback', 'lats',
             'frontalshoulders', 'lateralshoulders', 'rearshoulders',
-            'brachialis', 'longbiceps', 'shortbiceps', 'biceps',
-            'lateraltriceps', 'longtriceps', 'triceps',
+            'biceps', 'longbiceps', 'shortbiceps', 'brachialis',
+            'triceps', 'lateraltriceps', 'longtriceps',
         ],
     },
     lower: {
