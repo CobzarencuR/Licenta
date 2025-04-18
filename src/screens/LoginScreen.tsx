@@ -34,7 +34,28 @@ export default function LoginScreen({ navigation }: Props) {
                     await AsyncStorage.setItem('auth-token', data.token);
                     await AsyncStorage.setItem('loggedInUsername', username);
 
-                    navigation.navigate('Main');
+                    // 3) Look up the *local* user ID in SQLite by username
+                    db.transaction(tx => {
+                        tx.executeSql(
+                            'SELECT id FROM users WHERE username = ?;',
+                            [username],
+                            async (_, { rows }) => {
+                                if (rows.length > 0) {
+                                    const localId = rows.item(0).id.toString();
+                                    await AsyncStorage.setItem('loggedInUserId', localId);
+                                } else {
+                                    console.warn('Local SQLite user not found for', username);
+                                }
+                                navigation.navigate('Main');
+                            },
+                            (_, error) => {
+                                console.error('Error fetching local user id:', error);
+                                // even on error, go ahead
+                                navigation.navigate('Main');
+                                return true; // signal error handled
+                            }
+                        );
+                    });
                 }
             } catch (error) {
                 console.error('Login error:', error);
