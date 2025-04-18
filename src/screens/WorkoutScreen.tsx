@@ -18,56 +18,27 @@ type Exercise = {
     weight?: string
 }
 
-const splitTemplates: Record<string, SplitDay> = {
-    fullbody: {
-        name: 'Full Body',
-        muscles: [
-            'chest', 'upperchest', 'lowerchest',
-            'middleback', 'lats',
-            'frontalshoulders', 'lateralshoulders', 'rearshoulders',
-            'biceps', 'longbiceps', 'shortbiceps', 'brachialis',
-            'triceps', 'lateraltriceps', 'longtriceps',
-            'quads', 'hamstrings', 'glutes', 'calves', 'abs',
-        ],
-    },
-    push: {
-        name: 'Push',
-        muscles: [
-            'chest', 'upperchest', 'lowerchest',
-            'frontalshoulders', 'lateralshoulders',
-            'triceps', 'lateraltriceps', 'longtriceps',
-        ],
-    },
-    pull: {
-        name: 'Pull',
-        muscles: [
-            'middleback', 'lats',
-            'rearshoulders',
-            'biceps', 'longbiceps', 'shortbiceps', 'brachialis',
-        ],
-    },
-    legs: {
-        name: 'Legs',
-        muscles: ['quads', 'hamstrings', 'glutes', 'calves', 'abs'],
-    },
-    upper: {
-        name: 'Upper',
-        muscles: [
-            'chest', 'upperchest', 'lowerchest',
-            'middleback', 'lats',
-            'frontalshoulders', 'lateralshoulders', 'rearshoulders',
-            'biceps', 'longbiceps', 'shortbiceps', 'brachialis',
-            'triceps', 'lateraltriceps', 'longtriceps',
-        ],
-    },
-    lower: {
-        name: 'Lower',
-        muscles: ['quads', 'hamstrings', 'glutes', 'calves', 'abs'],
-    },
+// --- 1) Two distinct template sets ---
+const beginnerTemplates: Record<string, SplitDay> = {
+    fullbody: { name: 'Full Body', muscles: ['quads', 'quads', 'chest', 'middleback', 'upperchest', 'lats', 'lateralshoulders', 'longtriceps', 'biceps'] },
+    push: { name: 'Push', muscles: ['chest', 'chest', 'upperchest', 'lateralshoulders', 'longtriceps', 'lateraltriceps'] },
+    pull: { name: 'Pull', muscles: ['middleback', 'lats', 'middleback', 'rearshoulders', 'longbiceps', 'shortbiceps'] },
+    legs: { name: 'Legs', muscles: ['quads', 'quads', 'hamstrings', 'calves', 'abs'] },
+    upper: { name: 'Upper', muscles: ['chest', 'middleback', 'upperchest', 'lats', 'lateralshoulders', 'longtriceps', 'biceps'] },
+    lower: { name: 'Lower', muscles: ['quads', 'quads', 'hamstrings', 'calves', 'abs'] },
 }
 
-// 2) Map days → template keys
-const splitKeysByDays: Record<number, (keyof typeof splitTemplates)[]> = {
+const intermediateTemplates: Record<string, SplitDay> = {
+    fullbody: { name: 'Full Body', muscles: ['quads', 'quads', 'chest', 'middleback', 'upperchest', 'lats', 'lateralshoulders', 'longtriceps', 'biceps', 'brachialis'] },
+    push: { name: 'Push', muscles: ['chest', 'upperchest', 'chest', 'upperchest', 'lateralshoulders', 'lateralshoulders', 'longtriceps', 'lateraltriceps', 'longtriceps'] },
+    pull: { name: 'Pull', muscles: ['middleback', 'lats', 'middleback', 'lats', 'rearshoulders', 'longbiceps', 'shortbiceps', 'brachialis'] },
+    legs: { name: 'Legs', muscles: ['quads', 'quads', 'hamstrings', 'hamstrings', 'calves', 'abs', 'abs'] },
+    upper: { name: 'Upper', muscles: ['chest', 'middleback', 'upperchest', 'lats', 'lateralshoulders', 'lateralshoulders', 'longtriceps', 'biceps', 'lateraltriceps', 'brachialis'] },
+    lower: { name: 'Lower', muscles: ['quads', 'quads', 'hamstrings', 'hamstrings', 'calves', 'abs', 'abs'] },
+}
+
+// 2) Same day‐to‐template mapping:
+const splitKeysByDays: Record<number, (keyof typeof beginnerTemplates)[]> = {
     2: ['fullbody', 'fullbody'],
     3: ['push', 'pull', 'legs'],
     4: ['upper', 'lower', 'upper', 'lower'],
@@ -76,35 +47,12 @@ const splitKeysByDays: Record<number, (keyof typeof splitTemplates)[]> = {
     7: ['push', 'pull', 'legs', 'upper', 'lower', 'push', 'pull'],
 }
 
-const splitsByDays = Object.fromEntries(
-    Object.entries(splitKeysByDays).map(([days, keys]) => [
-        Number(days),
-        keys.map((k) => splitTemplates[k]),
-    ])
-) as Record<number, SplitDay[]>
-
-// slot‑by‑slot schemes
-const scheme: Record<string, string[]> = {
-    'Full Body': ['quads', 'quads', 'chest', 'middleback', 'upperchest', 'lats', 'lateralshoulders', 'longtriceps', 'biceps'],
-    Upper: [
-        'chest', 'middleback', 'upperchest', 'lats', 'lateralshoulders', 'longtriceps', 'biceps'
-    ],
-    Lower: [
-        'quads', 'quads', 'hamstrings', 'calves', 'abs'
-    ],
-    Push: [
-        'chest', 'upperchest', 'lateralshoulders', 'longtriceps', 'lateraltriceps'
-    ],
-    Pull: [
-        'middleback', 'lats', 'middleback', 'rearshoulders', 'longbiceps', 'shortbiceps'
-    ],
-    Legs: [
-        'quads', 'quads', 'hamstrings', 'calves', 'abs'
-    ],
-}
-
-const compound = new Set(['chest', 'upperchest', 'lowerchest', 'lats', 'middleback', 'quads'])
-const isolation = new Set(['biceps', 'triceps', 'shoulders', 'lateralshoulders', 'frontalshoulders', 'rearshoulders', 'lateraltriceps', 'longtriceps', 'shortbiceps', 'longbiceps', 'brachialis', 'hamstrings', 'calves', 'abs'])
+// 3) Sets & reps schemes:
+const isCompound = new Set([
+    'chest', 'upperchest', 'lowerchest', 'lats', 'middleback', 'quads'
+])
+const beginnerParams = { sets: 3, repC: 10, repI: 12 }
+const intermediateParams = { sets: 4, repC: 8, repI: 10 }
 
 export default function WorkoutScreen() {
     const { trainingDays, reloadTrainingDays } = useContext(WorkoutContext)
@@ -112,53 +60,65 @@ export default function WorkoutScreen() {
     const [exByDay, setExByDay] = useState<Record<number, Exercise[]>>({})
     const [loading, setLoading] = useState(true)
 
-    useFocusEffect(
-        useCallback(() => {
-            reloadTrainingDays()
-        }, [reloadTrainingDays])
-    )
+    useFocusEffect(useCallback(() => { reloadTrainingDays() }, [reloadTrainingDays]))
 
     useEffect(() => {
         if (trainingDays == null || !user) return
-        const split = splitsByDays[trainingDays] || []
-        if (!split.length) {
-            setLoading(false)
-            return
-        }
+
+        // pick which templates to use:
+        const tplSet = user.experience === 'intermediate'
+            ? intermediateTemplates
+            : beginnerTemplates
+
+        const dayKeys = splitKeysByDays[trainingDays] || []
+        const split: SplitDay[] = dayKeys.map(k => tplSet[k])
+
+        if (!split.length) { setLoading(false); return }
 
         setLoading(true)
             ; (async () => {
-                // 1) fetch all candidate exercises
-                const musclesNeeded = Array.from(new Set(split.flatMap(d => d.muscles)))
+                // aggregate needed muscles
+                const musclesNeeded = Array.from(
+                    new Set(split.flatMap(d => d.muscles))
+                )
                 const qs = encodeURIComponent(musclesNeeded.join(','))
                 const res = await fetch(`http://10.0.2.2:3000/getExercisesByPrimaryMuscle?muscles=${qs}`)
                 let all: Exercise[] = res.ok ? await res.json() : []
+                // filter by allowed difficulties
+                const allowed = user.experience === 'advanced'
+                    ? ['beginner', 'intermediate', 'advanced']
+                    : user.experience === 'intermediate'
+                        ? ['beginner', 'intermediate']
+                        : ['beginner']
+                all = all.filter(e => allowed.includes(e.difficulty))
 
-                // 2) filter by difficulty
-                if (user.experience === 'beginner') {
-                    all = all.filter(e => e.difficulty === 'beginner')
-                } else if (user.experience === 'intermediate') {
-                    all = all.filter(e => ['beginner', 'intermediate'].includes(e.difficulty))
-                }
-
-                // 3) bucket by muscle
+                // bucket by primary muscle
                 const buckets: Record<string, Exercise[]> = {}
-                musclesNeeded.forEach(m =>
+                musclesNeeded.forEach(m => {
                     buckets[m] = all.filter(e => e.primary_muscle_group === m).slice()
-                )
+                })
 
-                // 4) pick per‑slot and tag sets/reps
+                // picks per day
+                const params = user.experience === 'intermediate'
+                    ? intermediateParams
+                    : beginnerParams
+
                 const dayMap: Record<number, Exercise[]> = {}
                 split.forEach((day, idx) => {
+                    // clone each bucket
+                    const local = Object.fromEntries(
+                        Object.entries(buckets).map(([m, arr]) => [m, [...arr]])
+                    ) as typeof buckets
+
                     const picks: Exercise[] = []
-                    const slots = scheme[day.name] || []
-                    slots.forEach(muscle => {
-                        const bucket = buckets[muscle] || []
-                        if (bucket.length) {
-                            const ex = bucket.shift()!  // take first
-                            // tag sets/reps/weight
-                            ex.sets = 3
-                            ex.reps = compound.has(muscle) ? 10 : 12
+                    day.muscles.forEach(muscle => {
+                        const pool = local[muscle] || []
+                        if (pool.length) {
+                            const ex = pool.shift()!
+                            ex.sets = params.sets
+                            ex.reps = isCompound.has(muscle)
+                                ? params.repC
+                                : params.repI
                             ex.weight = 'TBD'
                             picks.push(ex)
                         }
@@ -170,17 +130,19 @@ export default function WorkoutScreen() {
             })()
                 .catch(console.error)
                 .finally(() => setLoading(false))
+
     }, [trainingDays, user?.experience])
 
     if (trainingDays == null || loading) {
-        return (
-            <View style={styles.center}>
-                <ActivityIndicator size="large" color="#007AFF" />
-            </View>
-        )
+        return <View style={styles.center}>
+            <ActivityIndicator size="large" color="#007AFF" />
+        </View>
     }
 
-    const split = splitsByDays[trainingDays] || []
+    const dayKeys = splitKeysByDays[trainingDays] || []
+    const split: SplitDay[] = dayKeys.map(k =>
+        (user!.experience === 'intermediate' ? intermediateTemplates : beginnerTemplates)[k]
+    )
 
     return (
         <View style={styles.container}>
@@ -189,7 +151,6 @@ export default function WorkoutScreen() {
                     ? `Your ${trainingDays}-Day Split`
                     : 'No split configured — set Training Days in Profile'}
             </Text>
-
             <FlatList
                 data={split}
                 keyExtractor={(_, i) => i.toString()}
@@ -205,7 +166,7 @@ export default function WorkoutScreen() {
                                 <View style={styles.exItem}>
                                     <Text style={styles.exName}>{ex.name}</Text>
                                     <Text style={styles.exDetails}>
-                                        {ex.sets}×{ex.reps} x {ex.weight}kg
+                                        {ex.sets}×{ex.reps} @ {ex.weight}
                                     </Text>
                                 </View>
                             )}
