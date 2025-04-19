@@ -3,18 +3,27 @@ import AsyncStorage from '@react-native-async-storage/async-storage'
 import SQLite from 'react-native-sqlite-storage'
 
 type WorkoutContextType = {
+    sex: 'M' | 'F' | null
+    age: number | null
+    objective: 'lose' | 'maintain' | 'gain' | null
     trainingDays: number | null
     experience: 'beginner' | 'intermediate' | 'advanced' | null
     reload: () => void
 }
 
 export const WorkoutContext = createContext<WorkoutContextType>({
+    sex: null,
+    age: null,
+    objective: null,
     trainingDays: null,
     experience: null,
     reload: () => { },
 })
 
 export const WorkoutProvider = ({ children }: { children: ReactNode }) => {
+    const [sex, setSex] = useState<'M' | 'F' | null>(null)
+    const [age, setAge] = useState<number | null>(null)
+    const [objective, setObjective] = useState<'lose' | 'maintain' | 'gain' | null>(null)
     const [trainingDays, setTrainingDays] = useState<number | null>(null)
     const [experience, setExperience] = useState<'beginner' | 'intermediate' | 'advanced' | null>(null)
 
@@ -27,22 +36,31 @@ export const WorkoutProvider = ({ children }: { children: ReactNode }) => {
     const load = async () => {
         const username = await AsyncStorage.getItem('loggedInUsername')
         if (!username) {
+            setSex(null)
+            setAge(null)
+            setObjective(null)
             setTrainingDays(null)
             setExperience(null)
             return
         }
         db.transaction(tx => {
             tx.executeSql(
-                `SELECT trainingDays, experience 
+                `SELECT sex, age, objective, trainingDays, experience 
            FROM users 
           WHERE username = ?;`,
                 [username],
                 (_, { rows }) => {
                     if (rows.length > 0) {
                         const r = rows.item(0)
+                        setSex(r.sex)
+                        setAge(r.age)
+                        setObjective(r.objective)
                         setTrainingDays(r.trainingDays)
                         setExperience(r.experience)
                     } else {
+                        setSex(null)
+                        setAge(null)
+                        setObjective(null)
                         setTrainingDays(null)
                         setExperience(null)
                     }
@@ -62,6 +80,9 @@ export const WorkoutProvider = ({ children }: { children: ReactNode }) => {
     return (
         <WorkoutContext.Provider
             value={{
+                sex,
+                age,
+                objective,
                 trainingDays,
                 experience,
                 reload: load,
