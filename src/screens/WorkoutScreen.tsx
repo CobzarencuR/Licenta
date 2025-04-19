@@ -2,7 +2,6 @@ import React, { useCallback, useContext, useEffect, useState } from 'react'
 import { View, Text, FlatList, StyleSheet, ActivityIndicator } from 'react-native'
 import { useFocusEffect } from '@react-navigation/native'
 import { WorkoutContext } from '../context/WorkoutContext'
-import { UserContext } from '../context/UserContext'
 
 type SplitDay = { name: string; muscles: string[] }
 type Exercise = {
@@ -55,18 +54,19 @@ const beginnerParams = { sets: 3, repC: 10, repI: 12 }
 const intermediateParams = { sets: 4, repC: 8, repI: 10 }
 
 export default function WorkoutScreen() {
-    const { trainingDays, reloadTrainingDays } = useContext(WorkoutContext)
-    const { user } = useContext(UserContext)
+    const { trainingDays, experience, reload } = useContext(WorkoutContext)
     const [exByDay, setExByDay] = useState<Record<number, Exercise[]>>({})
     const [loading, setLoading] = useState(true)
 
-    useFocusEffect(useCallback(() => { reloadTrainingDays() }, [reloadTrainingDays]))
+    useFocusEffect(useCallback(() => {
+        reload()
+    }, [reload]))
 
     useEffect(() => {
-        if (trainingDays == null || !user) return
+        if (trainingDays == null || experience == null) return
 
         // pick which templates to use:
-        const tplSet = user.experience === 'intermediate'
+        const tplSet = experience === 'intermediate'
             ? intermediateTemplates
             : beginnerTemplates
 
@@ -85,9 +85,9 @@ export default function WorkoutScreen() {
                 const res = await fetch(`http://10.0.2.2:3000/getExercisesByPrimaryMuscle?muscles=${qs}`)
                 let all: Exercise[] = res.ok ? await res.json() : []
                 // filter by allowed difficulties
-                const allowed = user.experience === 'advanced'
+                const allowed = experience === 'advanced'
                     ? ['beginner', 'intermediate', 'advanced']
-                    : user.experience === 'intermediate'
+                    : experience === 'intermediate'
                         ? ['beginner', 'intermediate']
                         : ['beginner']
                 all = all.filter(e => allowed.includes(e.difficulty))
@@ -99,7 +99,7 @@ export default function WorkoutScreen() {
                 })
 
                 // picks per day
-                const params = user.experience === 'intermediate'
+                const params = experience === 'intermediate'
                     ? intermediateParams
                     : beginnerParams
 
@@ -131,7 +131,7 @@ export default function WorkoutScreen() {
                 .catch(console.error)
                 .finally(() => setLoading(false))
 
-    }, [trainingDays, user?.experience])
+    }, [trainingDays, experience])
 
     if (trainingDays == null || loading) {
         return <View style={styles.center}>
@@ -141,7 +141,7 @@ export default function WorkoutScreen() {
 
     const dayKeys = splitKeysByDays[trainingDays] || []
     const split: SplitDay[] = dayKeys.map(k =>
-        (user!.experience === 'intermediate' ? intermediateTemplates : beginnerTemplates)[k]
+        (experience === 'intermediate' ? intermediateTemplates : beginnerTemplates)[k]
     )
 
     return (

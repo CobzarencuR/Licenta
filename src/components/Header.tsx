@@ -26,7 +26,7 @@ export default function Header() {
                         (tx, results) => {
                             if (results.rows.length > 0) {
                                 const row = results.rows.item(0);
-                                setUser({ username: storedUsername, photoUri: row.photoUri, experience: row.experience });
+                                setUser({ username: storedUsername, photoUri: row.photoUri });
                             }
                         },
                         (error) => console.log('Error fetching photoUri:', error)

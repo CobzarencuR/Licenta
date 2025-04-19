@@ -34,7 +34,6 @@ export default function ProfileScreen() {
     const navigation = useNavigation();
     const { setUser } = useContext(UserContext);
     const [profileLoaded, setProfileLoaded] = useState(false);
-    const { reloadTrainingDays } = useContext(WorkoutContext);
 
     // Calculate age based on DOB
     const calculateAge = (dob: Date) => {
@@ -108,7 +107,6 @@ export default function ProfileScreen() {
                             setUser({
                                 username: row.username,
                                 photoUri: row.photoUri,
-                                experience: row.experience,
                             });
                         }
                         setProfileLoaded(true);
@@ -231,8 +229,7 @@ export default function ProfileScreen() {
                     console.log('Rows affected:', result.rowsAffected);
                     if (result.rowsAffected > 0) {
                         Alert.alert('Success', 'Profile updated successfully');
-                        setUser({ username, photoUri, experience });
-                        reloadTrainingDays();
+                        setUser({ username, photoUri });
                         try {
                             const response = await fetch('http://10.0.2.2:3000/updateProfile', {
                                 method: 'POST',

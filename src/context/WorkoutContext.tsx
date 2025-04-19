@@ -4,16 +4,19 @@ import SQLite from 'react-native-sqlite-storage'
 
 type WorkoutContextType = {
     trainingDays: number | null
-    reloadTrainingDays: () => void
+    experience: 'beginner' | 'intermediate' | 'advanced' | null
+    reload: () => void
 }
 
 export const WorkoutContext = createContext<WorkoutContextType>({
     trainingDays: null,
-    reloadTrainingDays: () => { },
+    experience: null,
+    reload: () => { },
 })
 
 export const WorkoutProvider = ({ children }: { children: ReactNode }) => {
     const [trainingDays, setTrainingDays] = useState<number | null>(null)
+    const [experience, setExperience] = useState<'beginner' | 'intermediate' | 'advanced' | null>(null)
 
     const db = SQLite.openDatabase(
         { name: 'fitnessApp.db', location: 'default' },
@@ -21,26 +24,31 @@ export const WorkoutProvider = ({ children }: { children: ReactNode }) => {
         e => console.error('WorkoutContext DB error', e),
     )
 
-    const loadTrainingDays = async () => {
-        const storedUsername = await AsyncStorage.getItem('loggedInUsername');
-        if (!storedUsername) {
+    const load = async () => {
+        const username = await AsyncStorage.getItem('loggedInUsername')
+        if (!username) {
             setTrainingDays(null)
+            setExperience(null)
             return
         }
-
         db.transaction(tx => {
             tx.executeSql(
-                'SELECT trainingDays FROM users WHERE username = ?;',
-                [storedUsername],
+                `SELECT trainingDays, experience 
+           FROM users 
+          WHERE username = ?;`,
+                [username],
                 (_, { rows }) => {
                     if (rows.length > 0) {
-                        setTrainingDays(rows.item(0).trainingDays)
+                        const r = rows.item(0)
+                        setTrainingDays(r.trainingDays)
+                        setExperience(r.experience)
                     } else {
                         setTrainingDays(null)
+                        setExperience(null)
                     }
                 },
                 (_, err) => {
-                    console.error('WorkoutContext loadTrainingDays failed', err)
+                    console.error('WorkoutContext load failed', err)
                     return false
                 }
             )
@@ -48,12 +56,16 @@ export const WorkoutProvider = ({ children }: { children: ReactNode }) => {
     }
 
     useEffect(() => {
-        loadTrainingDays()
+        load()
     }, [])
 
     return (
         <WorkoutContext.Provider
-            value={{ trainingDays, reloadTrainingDays: loadTrainingDays }}
+            value={{
+                trainingDays,
+                experience,
+                reload: load,
+            }}
         >
             {children}
         </WorkoutContext.Provider>

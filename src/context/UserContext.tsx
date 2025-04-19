@@ -3,7 +3,6 @@ import React, { createContext, useState, ReactNode } from 'react';
 export type User = {
     username: string;
     photoUri: string;
-    experience: string;
 };
 
 type UserContextType = {
